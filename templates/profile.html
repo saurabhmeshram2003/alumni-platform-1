@@ -1,0 +1,669 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.name }} – Alumni Platform{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8"
+    x-data="{ tab: 'about', editMode: false, showPhotoModal: false, showImageModal: false, showMentorModal: false }">
+
+    <!-- Profile Header with Glassmorphism -->
+    <div
+        class="relative rounded-3xl overflow-hidden shadow-2xl mb-8 border border-white/20 dark:border-gray-800/50 block">
+        <div
+            class="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-accent opacity-90 backdrop-blur-xl">
+        </div>
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20">
+        </div>
+
+        <div
+            class="relative z-10 p-8 sm:p-12 flex flex-col-reverse sm:flex-row items-center sm:items-end justify-between gap-6 sm:gap-10 mt-12 sm:mt-20 block">
+
+            <!-- Left Side: Basic Info and Action Buttons -->
+            <div class="flex flex-col text-center sm:text-left flex-1 mb-4">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-2">{{
+                    user.name }}</h1>
+                <p class="text-xl text-white/90 font-medium tracking-wide">{{ user.role|capitalize }} &bull; Class of {{
+                    user.graduation_year }}</p>
+                <p class="text-white/80 mt-1 mb-6"><i class="fas fa-university mr-2"></i>{{ user.department }}</p>
+
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    {% if is_owner %}
+                    <button @click="editMode = !editMode; if(editMode) tab = 'about'"
+                        class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 font-semibold py-3 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center">
+                        <i class="fas fa-user-edit mr-2"></i> <span
+                            x-text="editMode ? 'Cancel Edit' : 'Edit Profile'"></span>
+                    </button>
+                    {% elif current_user.role == 'student' and user.role == 'alumni' %}
+                    <button @click="showMentorModal = true"
+                        class="bg-accent hover:bg-yellow-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.5)] transition-all flex items-center justify-center transform hover:-translate-y-1 mt-3 sm:mt-0">
+                        <i class="fas fa-handshake mr-2"></i> Request Mentorship
+                    </button>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Right Side: Avatar Section -->
+            <div class="relative group mt-12 sm:mt-0 cursor-pointer" @click="showImageModal = true"
+                title="View Profile Picture">
+                <div
+                    class="w-48 h-48 sm:w-56 sm:h-56 rounded-full border-4 border-white/30 p-1 shadow-2xl bg-white/10 backdrop-blur-sm relative">
+                    <img src="{{ url_for('static', filename='uploads/' ~ user.profile_image) if user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ user.name|urlencode ~ '&background=1E3A8A&color=fff' }}"
+                        class="w-full h-full rounded-full object-cover">
+
+                    {% if is_owner %}
+                    <button @click.stop="showPhotoModal = true"
+                        class="absolute bottom-2 right-2 bg-white/20 backdrop-blur-md hover:bg-white text-gray-800 dark:hover:bg-primary dark:hover:text-white p-3 rounded-full shadow-lg transition-all duration-300 transform group-hover:scale-110"
+                        title="Update Profile Picture">
+                        <i class="fas fa-camera text-lg"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+        <!-- Left Sidebar (Contact & Meta) -->
+        <div class="md:col-span-4 space-y-6">
+            <div
+                class="bg-white dark:bg-darkCard rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-2xl transition-shadow block">
+                <div
+                    class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110">
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <i class="fas fa-address-card text-primary mr-3 text-xl"></i> Contact Info
+                </h3>
+
+                <ul class="space-y-5">
+                    <li class="flex items-start">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 dark:bg-gray-800 flex items-center justify-center text-primary dark:text-secondary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Email Address</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white break-all">{{ user.email }}</p>
+                        </div>
+                    </li>
+
+                    {% if user.linkedin %}
+                    <li class="flex items-start">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 dark:bg-gray-800 flex items-center justify-center text-[#0077b5] group-hover:bg-[#0077b5] group-hover:text-white transition-colors">
+                            <i class="fab fa-linkedin-in"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Professional Network</p>
+                            <a href="{{ user.linkedin }}" target="_blank" rel="noopener noreferrer"
+                                class="text-sm font-medium text-primary hover:underline">LinkedIn Profile ↗</a>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    {% if user.role == 'alumni' and user.company %}
+                    <li class="flex items-start">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-gray-700 group-hover:text-white transition-colors">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Company</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.company }}</p>
+                            <p class="text-xs text-gray-500">{{ user.position }}</p>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Content Area (Tabs & Data) -->
+        <div class="md:col-span-8">
+            <!-- Glassy Tabs Nav -->
+            <div
+                class="bg-white/70 dark:bg-darkCard/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 p-2 block">
+                <nav class="flex space-x-2 overflow-x-auto" aria-label="Tabs">
+                    <button @click="tab = 'about'"
+                        :class="tab === 'about' ? 'bg-primary text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'"
+                        class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all focus:outline-none flex items-center whitespace-nowrap">
+                        <i class="fas fa-user mr-2"></i> About
+                    </button>
+                    {% if user.role == 'alumni' %}
+                    <button @click="tab = 'jobs'; editMode = false"
+                        :class="tab === 'jobs' ? 'bg-primary text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'"
+                        class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all focus:outline-none flex items-center whitespace-nowrap">
+                        <i class="fas fa-briefcase mr-2"></i> Jobs Posted
+                    </button>
+                    {% endif %}
+                    <button @click="tab = 'events'; editMode = false"
+                        :class="tab === 'events' ? 'bg-primary text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'"
+                        class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all focus:outline-none flex items-center whitespace-nowrap">
+                        <i class="fas fa-calendar-alt mr-2"></i> Events
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content Area -->
+            <div
+                class="bg-white dark:bg-darkCard rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden block">
+
+                <!-- About Tab -->
+                <div x-show="tab === 'about'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-4"
+                    x-transition:enter-end="opacity-100 translate-y-0" class="p-8 block">
+
+                    <!-- View Mode -->
+                    <div x-show="!editMode" class="block">
+                        <h3
+                            class="text-2xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
+                            Biography</h3>
+                        <div
+                            class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 text-base leading-relaxed">
+                            {% if user.bio %}
+                            <p class="whitespace-pre-line">{{ user.bio }}</p>
+                            {% else %}
+                            <div
+                                class="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center">
+                                <i class="fas fa-quote-left text-3xl text-gray-300 dark:text-gray-600 mb-3 block"></i>
+                                <p class="italic text-gray-500">No biography provided yet.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <h3
+                            class="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
+                            Skills & Expertise</h3>
+                        <div class="flex flex-wrap gap-3">
+                            {% for skill in user.skills %}
+                            <span
+                                class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-50 to-indigo-50 text-indigo-700 dark:from-gray-800 dark:to-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 shadow-sm transition-transform hover:scale-105 cursor-default">
+                                <i class="fas fa-check-circle mr-2 opacity-50"></i> {{ skill }}
+                            </span>
+                            {% else %}
+                            <p class="text-sm italic text-gray-400">No skills added yet.</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Current Working Company -->
+                        {% if user.current_working_company %}
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
+                            <i class="fas fa-briefcase text-primary mr-2"></i>Current Position
+                        </h3>
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-indigo-900/20 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-800 flex items-center gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                <i class="fas fa-building text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900 dark:text-white text-lg">{{ user.current_working_company }}</p>
+                                {% if user.class_batch and user.class_batch != 'Not Listed' %}
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><i class="fas fa-graduation-cap mr-1"></i> Batch of {{ user.class_batch }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Past Experience -->
+                        {% if user.past_experience %}
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
+                            <i class="fas fa-history text-purple-500 mr-2"></i>Work Experience
+                        </h3>
+                        <div class="relative">
+                            <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-purple-400 to-indigo-300 dark:from-primary dark:via-purple-600 dark:to-indigo-800 opacity-30"></div>
+                            <div class="space-y-5 ml-12">
+                            {% for exp in user.past_experience %}
+                            <div class="relative bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="absolute -left-[2.95rem] top-5 w-4 h-4 rounded-full bg-primary border-2 border-white dark:border-gray-900 shadow"></div>
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <div>
+                                        <p class="font-bold text-gray-900 dark:text-white">{{ exp.role }}</p>
+                                        <p class="text-primary dark:text-indigo-300 font-semibold text-sm mt-0.5"><i class="fas fa-building mr-1 opacity-70"></i>{{ exp.company }}</p>
+                                    </div>
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                                        <i class="fas fa-calendar-alt mr-1 opacity-60"></i>{{ exp.duration }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Education -->
+                        {% if user.education %}
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
+                            <i class="fas fa-graduation-cap text-accent mr-2"></i>Education
+                        </h3>
+                        <div class="space-y-4">
+                        {% for edu in user.education %}
+                        {% if edu.degree != 'Not Listed' %}
+                        <div class="bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm flex gap-4 hover:shadow-md transition-shadow">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center border border-yellow-100 dark:border-yellow-700">
+                                <i class="fas fa-university text-accent text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900 dark:text-white">{{ edu.institution }}</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{{ edu.degree }}</p>
+                                {% if edu.duration %}
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><i class="fas fa-clock mr-1"></i>{{ edu.duration }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Certificates -->
+                        {% if user.certificates %}
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
+                            <i class="fas fa-certificate text-green-500 mr-2"></i>Certifications
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {% for cert in user.certificates %}
+                        <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800 px-4 py-3">
+                            <i class="fas fa-award text-green-500 flex-shrink-0"></i>
+                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ cert }}</span>
+                        </div>
+                        {% endfor %}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Edit Mode Form -->
+                    <form x-show="editMode" style="display: none;" action="{{ url_for('alumni.update_profile') }}"
+                        method="POST" class="space-y-8 block">
+                        <div
+                            class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6 border border-blue-100 dark:border-blue-800/50 flex flex-col block">
+                            <h4 class="text-blue-800 dark:text-blue-300 font-bold mb-1"><i
+                                    class="fas fa-info-circle mr-2"></i> Editing Mode Active</h4>
+                            <p class="text-sm text-blue-600 dark:text-blue-400">Update your information below to ensure
+                                your profile is current.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="relative block">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Full
+                                    Name</label>
+                                <input type="text" name="name" value="{{ user.name }}" required
+                                    class="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent px-4 py-3 transition-all">
+                            </div>
+                            <div class="relative block">
+                                <label
+                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Department</label>
+                                <input type="text" name="department" value="{{ user.department }}" required
+                                    class="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent px-4 py-3 transition-all">
+                            </div>
+
+                            {% if user.role == 'alumni' %}
+                            <div class="relative block">
+                                <label
+                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Company</label>
+                                <input type="text" name="company" value="{{ user.company or '' }}"
+                                    class="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent px-4 py-3 transition-all">
+                            </div>
+                            <div class="relative block">
+                                <label
+                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Position</label>
+                                <input type="text" name="position" value="{{ user.position or '' }}"
+                                    class="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent px-4 py-3 transition-all">
+                            </div>
+                            {% endif %}
+
+                            <div class="md:col-span-2 relative block">
+                                <label
+                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">LinkedIn
+                                    URL</label>
+                                <div class="flex">
+                                    <span
+                                        class="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-gray-500 sm:text-sm">
+                                        <i class="fab fa-linkedin"></i>
+                                    </span>
+                                    <input type="url" name="linkedin" value="{{ user.linkedin or '' }}"
+                                        placeholder="https://linkedin.com/in/username"
+                                        class="flex-1 min-w-0 w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-r-xl focus:ring-2 focus:ring-primary focus:border-transparent px-4 py-3 transition-all block">
+                                </div>
+                            </div>
+
+                            <div class="md:col-span-2 relative block">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Skills
+                                    <span class="text-xs text-gray-500 font-normal ml-2">(Comma
+                                        separated)</span></label>
+                                <input type="text" name="skills" value="{{ user.skills|join(', ') }}"
+                                    placeholder="Python, JavaScript, Leadership"
+                                    class="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent px-4 py-3 transition-all">
+                            </div>
+
+                            <div class="md:col-span-2 relative block">
+                                <label
+                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Biography</label>
+                                <textarea name="bio" rows="5"
+                                    class="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent px-4 py-3 transition-all">{{ user.bio or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 justify-end pt-6 border-t border-gray-100 dark:border-gray-800 block">
+                            <button type="button" @click="editMode = false"
+                                class="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-primary/30 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transform hover:-translate-y-1">
+                                Save Profile Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Jobs Tab -->
+                {% if user.role == 'alumni' %}
+                <div x-show="tab === 'jobs'" style="display: none;" class="p-8 block">
+                    <div
+                        class="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-800 pb-4 block">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">{{ "Your" if is_owner else
+                            user.name|string + "'s" }} Job Postings</h3>
+                        {% if is_owner %}
+                        <a href="{{ url_for('jobs.post_job') }}"
+                            class="bg-indigo-50 dark:bg-indigo-900/30 text-primary dark:text-indigo-300 px-5 py-2.5 rounded-xl font-bold hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors flex items-center shadow-sm">
+                            <i class="fas fa-plus mr-2"></i> Post New Job Recommendation
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-5 block">
+                        {% for job in jobs %}
+                        <div
+                            class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-lg transition-transform hover:-translate-y-1 duration-300 block">
+                            <div class="block">
+                                <h4 class="text-xl font-bold text-gray-900 dark:text-white">{{ job.title }}</h4>
+                                <div
+                                    class="flex items-center mt-2 text-gray-500 dark:text-gray-400 text-sm gap-4 block">
+                                    <span class="flex items-center"><i class="fas fa-building mr-2 text-primary"></i>{{
+                                        job.company }}</span>
+                                    <span class="flex items-center"><i
+                                            class="fas fa-map-marker-alt mr-2 text-red-500"></i>{{ job.location
+                                        }}</span>
+                                </div>
+                                <div
+                                    class="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-semibold text-gray-500 block">
+                                    <i class="fas fa-clock mr-1"></i> Posted on {{ job.created_at.strftime('%Y-%m-%d')
+                                    if job.created_at else 'N/A' }}
+                                </div>
+                            </div>
+                            <div class="mt-5 md:mt-0 flex gap-3 block">
+                                {% if is_owner or current_user.role == 'admin' %}
+                                <form action="{{ url_for('jobs.delete_job', job_id=job._id) }}" method="POST"
+                                    onsubmit="return confirm('Are you sure you want to delete this job post?');"
+                                    class="block">
+                                    <button type="submit"
+                                        class="bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:text-red-400 p-3 rounded-xl transition-colors shadow-sm"
+                                        title="Delete Job">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <a href="{{ job.application_link }}" target="_blank"
+                                    class="bg-primary text-white font-bold px-6 py-3 rounded-xl shadow-md hover:bg-blue-700 transition-colors flex items-center">
+                                    Apply Now <i class="fas fa-external-link-alt ml-2"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div
+                            class="text-center py-16 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 block">
+                            <div
+                                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-primary dark:bg-gray-800 dark:text-gray-500 mb-4 block">
+                                <i class="fas fa-briefcase text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">No jobs posted yet</h3>
+                            <p class="text-gray-500">Check back later for opportunities from {{ user.name }}.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Events Tab -->
+                <div x-show="tab === 'events'" style="display: none;" class="p-8 block">
+                    <h3
+                        class="text-2xl font-bold text-gray-900 dark:text-white mb-8 border-b border-gray-100 dark:border-gray-800 pb-4 block">
+                        <i class="fas fa-calendar-check text-primary mr-2"></i> {{ "Events You're Attending" if is_owner
+                        else "Events " ~ user.name|string ~ " is Attending" }}
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 block">
+                        {% for event in events %}
+                        <div
+                            class="bg-white dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 flex gap-5 hover:border-primary dark:hover:border-primary transition-all hover:shadow-lg group block">
+                            <div
+                                class="flex-shrink-0 bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 text-center rounded-xl p-3 w-20 h-20 flex flex-col justify-center items-center shadow-inner border border-white dark:border-gray-600 block">
+                                <span
+                                    class="block text-xs uppercase tracking-wider text-primary dark:text-indigo-300 font-extrabold">{{
+                                    event.date.strftime('%b') if event.date else '' }}</span>
+                                <span class="block text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{{
+                                    event.date.strftime('%d') if event.date else '' }}</span>
+                            </div>
+                            <div class="flex flex-col justify-center block">
+                                <h4
+                                    class="font-bold text-lg text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
+                                    {{ event.title }}</h4>
+                                <p
+                                    class="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded w-fit block">
+                                    <i class="fas fa-map-marker-alt text-red-400 mr-2"></i> {{ event.location }}</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div
+                            class="col-span-full text-center py-16 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 block">
+                            <div
+                                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-50 text-accent dark:bg-gray-800 dark:text-gray-500 mb-4 block">
+                                <i class="fas fa-calendar-times text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">No events registered</h3>
+                            <p class="text-gray-500">You can find upcoming events in the community section.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Explicit Custom Photo Upload Modal for Reliability -->
+    {% if is_owner %}
+    <div x-show="showPhotoModal" class="fixed inset-0 z-50 overflow-y-auto block" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true" style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0 block">
+
+            <div x-show="showPhotoModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity block"
+                aria-hidden="true" @click="showPhotoModal = false"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="showPhotoModal" x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="inline-block align-bottom bg-white dark:bg-darkCard rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-100 dark:border-gray-800 block">
+                <form action="{{ url_for('alumni.upload_image') }}" method="POST" enctype="multipart/form-data"
+                    class="block">
+                    <div class="px-6 pt-5 pb-6 sm:p-8 block">
+                        <div class="sm:flex sm:items-start block">
+                            <div
+                                class="mx-auto flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/50 sm:mx-0 sm:h-12 sm:w-12 block">
+                                <i class="fas fa-image text-2xl text-primary dark:text-blue-300"></i>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-6 sm:text-left w-full block">
+                                <h3 class="text-2xl leading-6 font-bold text-gray-900 dark:text-white mb-2"
+                                    id="modal-title">
+                                    Update Profile Photo
+                                </h3>
+                                <div class="mt-4 block">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 block">
+                                        Choose a clear, professional photo. This helps other alumni recognize you! Max
+                                        file size 16MB.
+                                    </p>
+
+                                    <div
+                                        class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-xl hover:border-primary dark:hover:border-primary transition-colors bg-gray-50 dark:bg-gray-800/50 block">
+                                        <div class="space-y-1 text-center block" x-data="{ fileName: '' }">
+                                            <i
+                                                class="fas fa-cloud-upload-alt text-4xl text-gray-400 dark:text-gray-500 mb-3 block"></i>
+                                            <div
+                                                class="flex text-sm text-gray-600 dark:text-gray-400 justify-center block">
+                                                <label for="file-upload"
+                                                    class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-bold text-primary dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus-within:outline-none px-3 py-1 shadow-sm block">
+                                                    <span>Browse files</span>
+                                                    <!-- Very explicit, basic HTML file input, totally visible inside context, no hidden magic that could break -->
+                                                    <input id="file-upload" name="profile_image" type="file"
+                                                        class="sr-only" accept="image/*"
+                                                        @change="fileName = $event.target.files[0].name" required>
+                                                </label>
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-2 block">PNG, JPG, GIF
+                                                up to 16MB</p>
+                                            <div x-show="fileName"
+                                                class="mt-3 px-3 py-2 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-sm font-semibold flex items-center justify-center block">
+                                                <i class="fas fa-file-image mr-2 block"></i> <span
+                                                    x-text="fileName"></span> Selected
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-gray-700 block">
+                        <button type="submit"
+                            class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-3 bg-primary text-base font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                            <i class="fas fa-upload mr-2"></i> Upload Photo
+                        </button>
+                        <button type="button" @click="showPhotoModal = false"
+                            class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm px-6 py-3 bg-white dark:bg-gray-700 text-base font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Image Viewer Modal (Enlarge Profile Picture) -->
+    <div x-show="showImageModal" class="fixed inset-0 z-[60] overflow-y-auto block" style="display: none;"
+        aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4 text-center">
+
+            <div x-show="showImageModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/95 backdrop-blur-md transition-opacity block" aria-hidden="true"
+                @click="showImageModal = false"></div>
+
+            <div x-show="showImageModal" x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="relative z-10 max-w-4xl w-full flex justify-center items-center block">
+                <button @click="showImageModal = false"
+                    class="absolute -top-12 right-0 text-white/50 hover:text-white transition-colors"
+                    title="Close viewer">
+                    <i class="fas fa-times text-4xl cursor-pointer"></i>
+                </button>
+                <img src="{{ url_for('static', filename='uploads/' ~ user.profile_image) if user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ user.name|urlencode ~ '&background=1E3A8A&color=fff' }}"
+                    class="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain border border-white/10"
+                    @click.stop="">
+            </div>
+        </div>
+    </div>
+    <!-- Mentorship Request Modal (Students only, shown on alumni profiles) -->
+    {% if current_user.role == 'student' and user.role == 'alumni' and not is_owner %}
+    <div x-show="showMentorModal" class="fixed inset-0 z-50 overflow-y-auto" style="display:none;"
+         aria-labelledby="mentor-modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <!-- Backdrop -->
+            <div x-show="showMentorModal"
+                 x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm"
+                 @click="showMentorModal = false"></div>
+
+            <!-- Modal panel -->
+            <div x-show="showMentorModal"
+                 x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                 class="relative bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 dark:border-gray-800">
+
+                <!-- Header -->
+                <div class="px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                            <i class="fas fa-handshake text-amber-500"></i>
+                        </div>
+                        <div>
+                            <h3 id="mentor-modal-title" class="text-lg font-bold text-gray-900 dark:text-white">Request Mentorship</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">from {{ user.name }}</p>
+                        </div>
+                    </div>
+                    <button @click="showMentorModal = false"
+                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form method="POST" action="{{ url_for('mentorship.create_request') }}">
+                    <input type="hidden" name="alumni_id" value="{{ user.id }}">
+                    <div class="px-6 py-5 space-y-4">
+                        <!-- Alumni info summary -->
+                        <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
+                            <img src="{{ url_for('static', filename='uploads/' ~ user.profile_image) if user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ user.name|urlencode ~ '&background=4F46E5&color=fff' }}"
+                                 class="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="{{ user.name }}">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ user.name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.department }} &bull; {{ user.company or 'Alumni' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Message -->
+                        <div>
+                            <label for="mentor-message" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                                Message <span class="text-gray-400 font-normal">(tell them why you'd like to connect)</span>
+                            </label>
+                            <textarea id="mentor-message" name="message" rows="4" required
+                                placeholder="Hi {{ user.name.split()[0] }}, I'm a {{ current_user.department }} student interested in learning about your experience at {{ user.company or 'your company' }}. Could we connect for mentorship?"
+                                class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 pb-6 flex gap-3 justify-end">
+                        <button type="button" @click="showMentorModal = false"
+                            class="px-5 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-sm transition-colors flex items-center gap-2">
+                            <i class="fas fa-paper-plane"></i> Send Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

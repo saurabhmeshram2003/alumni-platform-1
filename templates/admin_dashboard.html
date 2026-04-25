@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard – Alumni Platform{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row gap-6">
+    <!-- Sidebar -->
+    <div class="w-full md:w-64 flex-shrink-0">
+        {% include 'includes/sidebar.html' %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow min-w-0">
+
+        <!-- Page Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Admin Overview</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Platform statistics &amp; management</p>
+            </div>
+            <a href="{{ url_for('admin.manage_users') }}"
+               class="inline-flex items-center gap-2 bg-primary hover:bg-indigo-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors">
+                <i class="fas fa-users-cog"></i> Manage Users
+            </a>
+        </div>
+
+        <!-- Pending Approval Alert -->
+        {% if stats.pending_alumni > 0 %}
+        <div class="mb-6 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl p-4 shadow-sm">
+            <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5 flex-shrink-0"></i>
+            <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-200">Pending Alumni Approvals</h3>
+                <p class="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
+                    {{ stats.pending_alumni }} alumni account{{ 's' if stats.pending_alumni != 1 }} awaiting verification.
+                </p>
+            </div>
+            <a href="{{ url_for('admin.manage_users') }}"
+               class="flex-shrink-0 text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline whitespace-nowrap">
+                Review &rarr;
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white dark:bg-darkCard rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm border-l-4 border-l-indigo-500">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Users</p>
+                <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.users }}</p>
+            </div>
+            <div class="bg-white dark:bg-darkCard rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm border-l-4 border-l-emerald-500">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved Alumni</p>
+                <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.alumni }}</p>
+            </div>
+            <div class="bg-white dark:bg-darkCard rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm border-l-4 border-l-blue-500">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Active Jobs</p>
+                <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.jobs }}</p>
+            </div>
+            <div class="bg-white dark:bg-darkCard rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm border-l-4 border-l-rose-500">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pending Alumni</p>
+                <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.pending_alumni }}</p>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+
+            <!-- User Role Distribution (doughnut) — takes 2/5 width -->
+            <div class="lg:col-span-2 bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-4">User Distribution</h3>
+                <div class="relative h-56">
+                    <canvas id="roleChart"></canvas>
+                </div>
+                <!-- Legend below -->
+                <div class="flex justify-center gap-4 mt-4 flex-wrap text-xs text-gray-600 dark:text-gray-400">
+                    <span class="flex items-center gap-1.5">
+                        <span class="inline-block w-3 h-3 rounded-full bg-indigo-500"></span> Admin ({{ role_chart.data[0] }})
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="inline-block w-3 h-3 rounded-full bg-emerald-500"></span> Alumni ({{ role_chart.data[1] }})
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="inline-block w-3 h-3 rounded-full bg-blue-400"></span> Students ({{ role_chart.data[2] }})
+                    </span>
+                </div>
+            </div>
+
+            <!-- Jobs Per Month (bar) — takes 3/5 width -->
+            <div class="lg:col-span-3 bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-4">Jobs Posted — Last 6 Months</h3>
+                <div class="relative h-56">
+                    <canvas id="jobsMonthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Recent Users + Platform Summary -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Recent Registrations -->
+            <div class="bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Recent Registrations</h3>
+                    <a href="{{ url_for('admin.manage_users') }}" class="text-xs text-primary dark:text-secondary hover:underline">View All</a>
+                </div>
+                <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                    {% for user in recent_users %}
+                    <div class="px-5 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <img src="https://ui-avatars.com/api/?name={{ user.name|urlencode }}&background=4F46E5&color=fff&size=40"
+                                 class="h-9 w-9 rounded-full flex-shrink-0" alt="{{ user.name }}">
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user.name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+                            </div>
+                        </div>
+                        <span class="flex-shrink-0 ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold capitalize
+                            {% if user.role == 'admin' %}bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200
+                            {% elif user.role == 'alumni' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200
+                            {% else %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200{% endif %}">
+                            {{ user.role }}
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="px-5 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No users yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Platform Summary -->
+            <div class="bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-4">Platform Summary</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+                        <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <i class="fas fa-users w-4 text-indigo-500"></i> Total Registered Users
+                        </span>
+                        <span class="text-sm font-bold text-gray-900 dark:text-white">{{ stats.users }}</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+                        <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <i class="fas fa-user-graduate w-4 text-emerald-500"></i> Approved Alumni
+                        </span>
+                        <span class="text-sm font-bold text-gray-900 dark:text-white">{{ stats.alumni }}</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+                        <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <i class="fas fa-user-graduate w-4 text-blue-400"></i> Students
+                        </span>
+                        <span class="text-sm font-bold text-gray-900 dark:text-white">{{ stats.students }}</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+                        <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <i class="fas fa-briefcase w-4 text-blue-500"></i> Jobs Posted
+                        </span>
+                        <span class="text-sm font-bold text-gray-900 dark:text-white">{{ stats.jobs }}</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3">
+                        <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                            <i class="fas fa-calendar-alt w-4 text-violet-500"></i> Platform Events
+                        </span>
+                        <span class="text-sm font-bold text-gray-900 dark:text-white">{{ stats.events }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Inject real chart data from backend -->
+<script>
+    const ROLE_CHART_DATA = {
+        labels: {{ role_chart.labels | tojson }},
+        data:   {{ role_chart.data   | tojson }}
+    };
+    const JOBS_CHART_DATA = {
+        labels: {{ jobs_chart.labels | tojson }},
+        data:   {{ jobs_chart.data   | tojson }}
+    };
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const isDark = document.documentElement.classList.contains('dark');
+    const gridColor  = isDark ? '#374151' : '#E5E7EB';
+    const tickColor  = isDark ? '#9CA3AF' : '#6B7280';
+    const labelColor = isDark ? '#D1D5DB' : '#374151';
+
+    // ── User Role Doughnut ────────────────────────────────────
+    const roleCtx = document.getElementById('roleChart');
+    if (roleCtx) {
+        new Chart(roleCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ROLE_CHART_DATA.labels,
+                datasets: [{
+                    data: ROLE_CHART_DATA.data,
+                    backgroundColor: ['#6366F1', '#10B981', '#60A5FA'],
+                    borderWidth: 2,
+                    borderColor: isDark ? '#1F2937' : '#ffffff',
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 600 },
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.label}: ${ctx.raw} users`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Jobs Per Month Bar ────────────────────────────────────
+    const jobsCtx = document.getElementById('jobsMonthChart');
+    if (jobsCtx) {
+        new Chart(jobsCtx, {
+            type: 'bar',
+            data: {
+                labels: JOBS_CHART_DATA.labels,
+                datasets: [{
+                    label: 'Jobs Posted',
+                    data: JOBS_CHART_DATA.data,
+                    backgroundColor: '#6366F1',
+                    borderRadius: 5,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 600 },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: tickColor, precision: 0 },
+                        grid:  { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: tickColor },
+                        grid:  { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.raw} job${ctx.raw !== 1 ? 's' : ''}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

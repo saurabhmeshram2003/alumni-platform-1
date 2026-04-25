@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block title %}Alumni Directory - AlumniPlatform{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row gap-6 h-full" x-data="alumniDirectory()">
+    <!-- Sidebar Filters -->
+    <div class="w-full md:w-64 flex-shrink-0">
+        <div
+            class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 sticky top-24">
+            <h3 class="font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">
+                Filters</h3>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
+                <div class="relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" x-model="searchQuery" @input.debounce.300ms="fetchAlumni(false)"
+                        class="focus:ring-primary focus:border-primary block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg py-2 px-3 outline-none border transition-colors"
+                        placeholder="Name, company, skill...">
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Department</label>
+                <select x-model="department" @change="fetchAlumni(false)"
+                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-lg border transition-colors">
+                    <option value="">All Departments</option>
+                    <option value="CSE">CSE</option>
+                    <option value="Civil">Civil</option>
+                    <option value="Mechanical">Mechanical</option>
+                    <option value="IT">IT</option>
+                    <option value="ENTC">ENTC</option>
+
+                </select>
+            </div>
+
+            <button @click="resetFilters"
+                class="w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+                Clear Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="flex-grow">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Alumni Directory</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-sm"><span x-text="alumni.length"></span> connections found
+            </p>
+        </div>
+
+        <!-- Initial Server-Rendered Content (hidden when JS takes over) -->
+        <div id="ssr-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6" x-show="!jsLoaded">
+            {% for person in alumni %}
+            <div
+                class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow flex relative">
+                <div class="p-5 flex-grow pr-5 sm:pr-32 flex flex-col justify-between">
+                    <div>
+                        <div class="flex sm:hidden justify-center mb-4">
+                            <img src="{{ url_for('static', filename='uploads/' ~ person.profile_image) if person.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ person.name|urlencode ~ '&background=1E3A8A&color=fff' }}"
+                                class="w-20 h-20 rounded-full border-4 border-white dark:border-darkCard object-cover shadow-sm bg-white">
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">{{ person.name }}</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                            {% if person.class_batch and person.class_batch != 'Not Listed' %}Batch {{ person.class_batch }} &bull; {% endif %}{{ person.department }}
+                        </p>
+                        {% if person.current_working_company %}
+                        <p class="text-sm font-medium text-primary dark:text-secondary mb-3 line-clamp-2"><i
+                                class="fas fa-briefcase mr-1 text-gray-400"></i> {{ person.current_working_company }}</p>
+                        {% elif person.company %}
+                        <p class="text-sm font-medium text-primary dark:text-secondary mb-3"><i
+                                class="fas fa-building mr-1 text-gray-400"></i> {{ person.company }}</p>
+                        {% else %}
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 invisible">Placeholder</p>
+                        {% endif %}
+
+                        <div class="flex gap-2 mb-4 flex-wrap">
+                            {% for skill in person.skills[:3] %}
+                            <span
+                                class="inline-block bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs px-3 py-1.5 rounded-full font-medium">{{
+                                skill }}</span>
+                            {% endfor %}
+                            {% if person.skills|length > 3 %}
+                            <span
+                                class="inline-block bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs px-3 py-1.5 rounded-full font-medium">+{{
+                                person.skills|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-auto">
+                        <a href="{{ url_for('alumni.view_profile', user_id=person._id) }}"
+                            class="flex-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-medium py-2.5 px-2 rounded-lg transition-colors text-center whitespace-nowrap border border-gray-200 dark:border-gray-700">
+                            View Profile
+                        </a>
+                        {% if current_user.role == 'student' %}
+                        <a href="{{ url_for('mentorship.index', req=person._id) }}"
+                            class="flex-1 bg-primary hover:bg-indigo-700 text-white text-sm font-medium py-2.5 px-2 rounded-lg transition-colors text-center shadow-sm whitespace-nowrap">
+                            Request Mentor
+                        </a>
+                        {% endif %}
+                        <a href="mailto:{{ person.email }}"
+                            class="bg-green-500 hover:bg-green-600 text-white w-10 shrink-0 text-center rounded-lg transition-colors flex items-center justify-center shadow-sm"
+                            title="Email {{ person.name }}">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        {% if person.linkedin %}
+                        <a href="{{ person.linkedin }}" target="_blank"
+                            class="bg-[#0077b5] hover:bg-[#006097] text-white w-10 shrink-0 rounded-lg transition-colors flex items-center justify-center shadow-sm">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Larger image positioned horizontally on the right for md & up -->
+                <div
+                    class="absolute right-5 top-1/2 transform -translate-y-1/2 w-24 h-24 hidden sm:block pointer-events-none">
+                    <img src="{{ url_for('static', filename='uploads/' ~ person.profile_image) if person.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ person.name|urlencode ~ '&background=1E3A8A&color=fff' }}"
+                        class="w-full h-full rounded-full border-4 border-white dark:border-darkCard object-cover shadow-lg bg-white point-events-auto cursor-pointer">
+                </div>
+            </div>
+            {% else %}
+            <div
+                class="col-span-full p-8 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800">
+                <i class="fas fa-search text-4xl mb-3 text-gray-300 dark:text-gray-600"></i>
+                <p>No alumni found matching your criteria.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="csr-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6" x-show="jsLoaded" style="display: none;">
+            <template x-for="person in alumni" :key="person._id">
+                <div
+                    class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow flex relative">
+                    <div class="p-5 flex-grow pr-5 sm:pr-32 flex flex-col justify-between">
+                        <div>
+                            <div class="flex sm:hidden justify-center mb-4">
+                                <img :src="person.profile_image !== 'default.png' ? '/static/uploads/' + person.profile_image : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(person.name) + '&background=1E3A8A&color=fff'"
+                                    class="w-20 h-20 rounded-full border-4 border-white dark:border-darkCard object-cover shadow-sm bg-white">
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1" x-text="person.name"></h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2"
+                                x-text="(person.class_batch && person.class_batch !== 'Not Listed' ? 'Batch ' + person.class_batch + ' • ' : '') + (person.department || '')"></p>
+
+                            <div class="h-10 flex items-center mb-3">
+                                <template x-if="person.current_working_company">
+                                    <p class="text-sm font-medium text-primary dark:text-secondary line-clamp-2"
+                                        x-html="'<i class=\'fas fa-briefcase mr-1 text-gray-400\'></i> ' + person.current_working_company">
+                                    </p>
+                                </template>
+                            </div>
+
+                            <div class="flex gap-2 flex-wrap mb-4 mt-auto">
+                                <template x-for="(skill, index) in person.skills" :key="index">
+                                    <template x-if="index < 3">
+                                        <span
+                                            class="inline-block bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs px-3 py-1.5 rounded-full font-medium"
+                                            x-text="skill"></span>
+                                    </template>
+                                </template>
+                                <template x-if="person.skills && person.skills.length > 3">
+                                    <span
+                                        class="inline-block bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs px-3 py-1.5 rounded-full font-medium"
+                                        x-text="'+' + (person.skills.length - 3)"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 mt-auto pt-2">
+                            <a :href="'/profile/' + person._id"
+                                class="flex-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-medium py-2.5 px-2 rounded-lg transition-colors text-center whitespace-nowrap border border-gray-200 dark:border-gray-700">View Profile
+                            </a>
+                            {% if current_user.role == 'student' %}
+                            <a :href="'{{ url_for('mentorship.index') }}?req=' + person._id"
+                                class="flex-1 bg-primary hover:bg-indigo-700 text-white text-sm font-medium py-2.5 px-2 rounded-lg transition-colors text-center shadow-sm whitespace-nowrap">Request Mentor
+                            </a>
+                            {% endif %}
+                            <a :href="'mailto:' + person.email"
+                                class="bg-green-500 hover:bg-green-600 text-white w-10 shrink-0 text-center rounded-lg transition-colors flex items-center justify-center shadow-sm"
+                                :title="'Email ' + person.name">
+                                <i class="fas fa-envelope"></i>
+                            </a>
+                            <template x-if="person.linkedin">
+                                <a :href="person.linkedin" target="_blank"
+                                    class="bg-[#0077b5] hover:bg-[#006097] text-white p-2 w-10 shrink-0 rounded-lg transition-colors flex items-center justify-center shadow-sm">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Larger image positioned horizontally on the right for md & up -->
+                    <div
+                        class="absolute right-5 top-1/2 transform -translate-y-1/2 w-24 h-24 hidden sm:block pointer-events-none">
+                        <img :src="person.profile_image !== 'default.png' ? '/static/uploads/' + person.profile_image : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(person.name) + '&background=1E3A8A&color=fff'"
+                            class="w-full h-full rounded-full border-4 border-white dark:border-darkCard object-cover shadow-lg bg-white point-events-auto cursor-pointer">
+                    </div>
+                </div>
+            </template>
+            <!-- Loading State or Empty State -->
+            <div x-show="loading" class="col-span-full py-12 flex justify-center">
+                <i class="fas fa-circle-notch fa-spin text-3xl text-primary"></i>
+            </div>
+            <div x-show="!loading && alumni.length === 0"
+                class="col-span-full p-8 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800">
+                <i class="fas fa-search text-4xl mb-3 text-gray-300 dark:text-gray-600"></i>
+                <p>No alumni found matching your criteria.</p>
+            </div>
+
+            <!-- Load More Button -->
+            <div x-show="hasMore && !loading" class="col-span-full pt-6 text-center">
+                <button @click="fetchAlumni(true)"
+                    class="bg-white dark:bg-darkCard border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-secondary text-gray-700 dark:text-gray-300 hover:text-primary font-medium py-3 px-8 rounded-full shadow-sm hover:shadow-md transition-all">
+                    Load More Alumni
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('alumniDirectory', () => ({
+            jsLoaded: false,
+            loading: false,
+            searchQuery: '',
+            department: '',
+            alumni: [],
+            hasMore: true,
+
+            init() {
+                // Initialize with SSR data to prevent flicker, then enable JS mode
+                try {
+                    let initialDataStr = '{{ alumni|tojson|safe }}';
+                    // Need to parse ObjectID correctly, standard tojson might fail. 
+                    // To be safe, we'll just fetch immediately.
+                    this.fetchAlumni(false);
+                    this.jsLoaded = true;
+                } catch (e) {
+                    this.fetchAlumni(false);
+                    this.jsLoaded = true;
+                }
+            },
+
+            async fetchAlumni(append = false) {
+                if (append instanceof Event) append = false;
+                if (this.loading) return;
+                this.loading = true;
+                if (!append) {
+                    this.hasMore = true;
+                }
+                try {
+                    const response = await axios.get('/api/alumni/search', {
+                        params: {
+                            q: this.searchQuery,
+                            dept: this.department,
+                            skip: append ? this.alumni.length : 0,
+                            limit: 12
+                        }
+                    });
+
+                    if (append) {
+                        this.alumni = [...this.alumni, ...response.data];
+                    } else {
+                        this.alumni = response.data;
+                    }
+
+                    this.hasMore = response.data.length === 12;
+                } catch (error) {
+                    console.error('Error fetching alumni:', error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            resetFilters() {
+                this.searchQuery = '';
+                this.department = '';
+                this.fetchAlumni();
+            }
+        }))
+    })
+</script>
+{% endblock %}

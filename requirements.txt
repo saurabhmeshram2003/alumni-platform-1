@@ -1,0 +1,26 @@
+# ── Core Flask ─────────────────────────────────────────────────────
+Flask==2.3.3
+Werkzeug==2.3.7
+itsdangerous==2.1.2
+
+# ── Flask Extensions ───────────────────────────────────────────────
+Flask-Login==0.6.2
+Flask-PyMongo==2.3.0
+Flask-Mail==0.9.1
+Flask-WTF==1.2.1
+
+# ── Database ───────────────────────────────────────────────────────
+pymongo[srv]==4.6.1
+
+# ── Environment & Config ───────────────────────────────────────────
+python-dotenv==1.0.0
+
+# ── Validation & Utils ─────────────────────────────────────────────
+email-validator==2.1.0
+Pillow==10.2.0
+
+# ── Data (optional, used by seed scripts) ──────────────────────────
+pandas>=2.0.0
+
+# ── Production WSGI server ─────────────────────────────────────────
+gunicorn==21.2.0

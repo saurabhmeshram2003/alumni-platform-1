@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}Job Board - AlumniPlatform{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row gap-6">
+    <!-- Filters Sidebar -->
+    
+
+    <!-- Main Content -->
+    <div class="flex-grow">
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Opportunities Board</h2>
+            
+            {% if current_user.role == 'alumni' or current_user.role == 'admin' %}
+            <a href="{{ url_for('jobs.post_job') }}" class="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-6 rounded-full shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                <i class="fas fa-plus mr-1"></i> Post a Job Recommendation
+            </a>
+            {% endif %}
+        </div>
+
+        <div x-data="jobsBoard()" class="space-y-4">
+            <!-- Initial SSR Render -->
+            <div id="ssr-jobs" class="space-y-4" x-show="!jsLoaded">
+                {% for job in jobs %}
+                <div class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div class="flex items-start gap-4">
+                                <div class="hidden sm:flex items-center justify-center h-12 w-12 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                    <i class="fas fa-building text-2xl text-gray-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ job.title }}</h3>
+                                    <div class="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                        <span class="font-medium text-primary dark:text-secondary">{{ job.company }}</span>
+                                        <span>&bull;</span>
+                                        <span><i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> {{ job.location }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="w-full md:w-auto mt-4 md:mt-0">
+                                <a href="{{ job.application_link }}" target="_blank" class="block w-full text-center bg-gray-100 dark:bg-gray-800 hover:bg-primary hover:text-white dark:hover:bg-secondary text-gray-900 dark:text-white font-semibold py-2 px-6 rounded-full transition-colors">
+                                    Apply Now
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-4" x-data="{ expanded: false }">
+                            <div class="prose dark:prose-invert max-w-none text-sm text-gray-600 dark:text-gray-300" :class="expanded ? '' : 'line-clamp-2'">
+                                <p class="whitespace-pre-line">{{ job.description }}</p>
+                            </div>
+                            <button @click="expanded = !expanded" class="text-primary dark:text-secondary text-sm font-medium hover:underline mt-2 focus:outline-none">
+                                <span x-text="expanded ? 'Show less' : 'Read more'"></span>
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 flex items-center justify-between text-xs text-gray-500">
+                            <div class="flex items-center gap-2 border bg-gray-50 dark:bg-gray-800 dark:border-gray-700 px-3 py-1 rounded-full">
+                                <i class="fas fa-user-circle"></i>
+                                Posted by: {{ job.poster_name }}
+                            </div>
+                            
+                            {% if current_user.role == 'admin' or current_user.id == job.posted_by|string %}
+                            <div class="flex items-center gap-2">
+                                <a href="{{ url_for('jobs.edit_job', job_id=job._id) }}"
+                                   class="inline-flex items-center gap-1 text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 px-2 py-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+                                    <i class="fas fa-pen text-xs"></i> Edit
+                                </a>
+                                <form action="{{ url_for('jobs.delete_job', job_id=job._id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this job posting?');">
+                                    <button type="submit" class="inline-flex items-center gap-1 text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                                        <i class="fas fa-trash-alt text-xs"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
+                    <i class="fas fa-briefcase text-5xl text-gray-300 dark:text-gray-600 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No active jobs found</h3>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- CSR Rendered Jobs -->
+            <div id="csr-jobs" class="space-y-4" x-show="jsLoaded" style="display: none;">
+                <template x-for="job in jobsList" :key="job._id">
+                    <div class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="hidden sm:flex items-center justify-center h-12 w-12 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                        <i class="fas fa-building text-2xl text-gray-400"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white" x-text="job.title"></h3>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                            <span class="font-medium text-primary dark:text-secondary" x-text="job.company"></span>
+                                            <span>&bull;</span>
+                                            <span><i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> <span x-text="job.location"></span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="w-full md:w-auto mt-4 md:mt-0">
+                                    <a :href="job.application_link" target="_blank" class="block w-full text-center bg-gray-100 dark:bg-gray-800 hover:bg-primary hover:text-white dark:hover:bg-secondary text-gray-900 dark:text-white font-semibold py-2 px-6 rounded-full transition-colors">
+                                        Apply Now
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-4" x-data="{ expanded: false }">
+                                <div class="prose dark:prose-invert max-w-none text-sm text-gray-600 dark:text-gray-300" :class="expanded ? '' : 'line-clamp-2'">
+                                    <p class="whitespace-pre-line" x-text="job.description"></p>
+                                </div>
+                                <button @click="expanded = !expanded" class="text-primary dark:text-secondary text-sm font-medium hover:underline mt-2 focus:outline-none">
+                                    <span x-text="expanded ? 'Show less' : 'Read more'"></span>
+                                </button>
+                            </div>
+                            
+                            <div class="mt-4 flex items-center justify-between text-xs text-gray-500">
+                                <div class="flex items-center gap-2 border bg-gray-50 dark:bg-gray-800 dark:border-gray-700 px-3 py-1 rounded-full">
+                                    <i class="fas fa-user-circle"></i>
+                                    Posted by: <span x-text="job.poster_name"></span>
+                                </div>
+                                
+                                <!-- Authorization Check rendered client-side -->
+                                <template x-if="{{ 'true' if current_user.role == 'admin' else 'false' }} || '{{ current_user.id }}' == job.posted_by">
+                                    <div class="flex items-center gap-2">
+                                        <a :href="'/jobs/edit/' + job._id"
+                                           class="inline-flex items-center gap-1 text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 px-2 py-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors text-xs">
+                                            <i class="fas fa-pen text-xs"></i> Edit
+                                        </a>
+                                        <form :action="'/jobs/delete/' + job._id" method="POST" class="inline" onsubmit="return confirm('Delete this job posting?');">
+                                            <button type="submit" class="inline-flex items-center gap-1 text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors text-xs">
+                                                <i class="fas fa-trash-alt text-xs"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <div x-show="!loading && jobsList.length === 0" class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center">
+                    <i class="fas fa-briefcase text-5xl text-gray-300 dark:text-gray-600 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No active jobs found</h3>
+                </div>
+
+                <div x-show="hasMore && !loading" class="pt-6 text-center">
+                    <button @click="fetchJobs(true)" class="bg-white dark:bg-darkCard border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-secondary text-gray-700 dark:text-gray-300 hover:text-primary font-medium py-3 px-8 rounded-full shadow-sm hover:shadow-md transition-all">
+                        Load More Jobs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('jobsBoard', () => ({
+            jsLoaded: false,
+            loading: false,
+            location: '',
+            remoteOnly: false,
+            jobsList: [],
+            hasMore: true,
+            
+            init() {
+                this.fetchJobs(false);
+                this.jsLoaded = true;
+            },
+            
+            async fetchJobs(append = false) {
+                if(this.loading) return;
+                this.loading = true;
+                if(!append) this.hasMore = true;
+                
+                try {
+                    const params = {
+                        location: this.location,
+                        remote: this.remoteOnly,
+                        skip: append ? this.jobsList.length : 0,
+                        limit: 10
+                    };
+                    const response = await axios.get('/api/jobs', { params });
+                    
+                    if(append) {
+                        this.jobsList = [...this.jobsList, ...response.data];
+                    } else {
+                        this.jobsList = response.data;
+                    }
+                    
+                    this.hasMore = response.data.length === 10;
+                } catch(e) {
+                    console.error('Error fetching jobs', e);
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }))
+    });
+</script>
+{% endblock %}

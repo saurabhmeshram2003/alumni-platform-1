@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Edit Job Recommendation - AlumniPlatform{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8">
+    <div class="mb-6">
+        <a href="{{ url_for('jobs.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Job Recommendation Board
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-darkCard rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-6 text-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <i class="fas fa-pen text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">Edit Job Recommendation</h2>
+                    <p class="mt-0.5 opacity-80 text-sm">Update the details of your job posting below.</p>
+                </div>
+            </div>
+        </div>
+
+        <form action="{{ url_for('jobs.edit_job', job_id=job._id) }}" method="POST" class="p-8 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Job Title -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Job Title <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="title" required
+                           value="{{ job.title }}"
+                           placeholder="e.g. Senior Software Engineer"
+                           class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-lg font-medium border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg px-4 py-3 outline-none border transition-colors shadow-sm">
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Company Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="company" required
+                           value="{{ job.company }}"
+                           class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Location <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="location" required
+                           value="{{ job.location }}"
+                           placeholder="City, Country or Remote"
+                           class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">
+                </div>
+
+                <!-- Application URL -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Application URL <span class="text-red-500">*</span>
+                    </label>
+                    <input type="url" name="application_link" required
+                           value="{{ job.application_link }}"
+                           placeholder="https://..."
+                           class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">
+                    <p class="mt-1 text-xs text-gray-500">Where should candidates apply?</p>
+                </div>
+
+                <!-- Description -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Job Description <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="description" rows="6" required
+                              class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">{{ job.description }}</textarea>
+                </div>
+
+                <!-- Requirements -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Requirements</label>
+                    <textarea name="requirements" rows="4"
+                              placeholder="Skills, years of experience, education, etc."
+                              class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">{{ job.requirements or '' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-800">
+                <a href="{{ url_for('jobs.index') }}"
+                   class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-md text-base transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

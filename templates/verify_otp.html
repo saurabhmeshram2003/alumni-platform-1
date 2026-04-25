@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email – Alumni Platform</title>
+    <meta name="description" content="Verify your email address to complete registration on the Alumni Platform.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <style>
+        /* ── OTP-specific styles ─────────────────────────────────── */
+        .otp-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #EEF2FF, #C7D2FE);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 2rem;
+        }
+
+        .email-badge {
+            display: inline-block;
+            background: #EEF2FF;
+            color: #4F46E5;
+            border: 1px solid #C7D2FE;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            word-break: break-all;
+            margin-top: 4px;
+        }
+
+        /* 6 individual digit boxes */
+        .otp-boxes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 1.75rem 0 1rem;
+        }
+
+        .otp-box {
+            width: 52px;
+            height: 60px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-color);
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            caret-color: var(--primary-color);
+            outline: none;
+        }
+
+        .otp-box:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .otp-box.filled {
+            border-color: #818CF8;
+            background: #F5F3FF;
+        }
+
+        .otp-box.is-invalid {
+            border-color: var(--error-color);
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%       { transform: translateX(-6px); }
+            75%       { transform: translateX(6px); }
+        }
+
+        /* Hidden aggregated input sent to server */
+        #otpHidden { display: none; }
+
+        /* Countdown timer */
+        .otp-timer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            min-height: 22px;
+        }
+
+        .otp-timer .time-left {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .otp-timer.expired .time-left {
+            color: var(--error-color);
+        }
+
+        /* Resend section */
+        .resend-section {
+            text-align: center;
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .resend-section p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-outline {
+            background: #fff;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-outline:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Cooldown badge on button */
+        #resendCooldown {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 6px;
+        }
+
+        .alert-info {
+            background-color: #EFF6FF;
+            color: #1E40AF;
+            border-color: #BFDBFE;
+        }
+
+        /* Allow safe HTML in flash (for <strong> tags) */
+        .flash-messages .alert { line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="otp-icon" aria-hidden="true">📧</div>
+            <h1>Verify Your Email</h1>
+            <p>
+                We sent a 6-digit OTP to<br>
+                <span class="email-badge">{{ email }}</span>
+            </p>
+        </div>
+
+        <!-- Flash messages -->
+        <div class="flash-messages" id="flashMessages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% set alert_class = 'alert-success' if category == 'success'
+                                         else 'alert-danger'  if category in ['danger','error']
+                                         else 'alert-warning' if category == 'warning'
+                                         else 'alert-info' %}
+                        <div class="alert {{ alert_class }}">{{ message | safe }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- OTP form -->
+        <form method="POST" action="{{ url_for('auth.verify_otp') }}" id="otpForm" novalidate>
+            <input type="hidden" name="email" value="{{ email }}">
+            <input type="hidden" name="otp"   id="otpHidden" value="">
+
+            <!-- 6 digit boxes -->
+            <div class="otp-boxes" id="otpBoxes" role="group" aria-label="OTP input">
+                <input class="otp-box" type="text" inputmode="numeric"
+                       maxlength="1" autocomplete="one-time-code"
+                       id="otp0" aria-label="OTP digit 1">
+                <input class="otp-box" type="text" inputmode="numeric"
+                       maxlength="1" id="otp1" aria-label="OTP digit 2">
+                <input class="otp-box" type="text" inputmode="numeric"
+                       maxlength="1" id="otp2" aria-label="OTP digit 3">
+                <input class="otp-box" type="text" inputmode="numeric"
+                       maxlength="1" id="otp3" aria-label="OTP digit 4">
+                <input class="otp-box" type="text" inputmode="numeric"
+                       maxlength="1" id="otp4" aria-label="OTP digit 5">
+                <input class="otp-box" type="text" inputmode="numeric"
+                       maxlength="1" id="otp5" aria-label="OTP digit 6">
+            </div>
+
+            <!-- Countdown timer -->
+            <div class="otp-timer" id="otpTimer">
+                OTP expires in <span class="time-left" id="timeLeft">5:00</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="verifyBtn">
+                ✅ Verify OTP
+            </button>
+        </form>
+
+        <!-- Resend OTP -->
+        <div class="resend-section">
+            <p>Didn't receive the email? Check spam or request a new one.</p>
+            <form method="POST" action="{{ url_for('auth.resend_otp') }}" id="resendForm">
+                <input type="hidden" name="email" value="{{ email }}">
+                <button type="submit" class="btn btn-outline" id="resendBtn" disabled>
+                    🔁 Resend OTP
+                </button>
+                <span id="resendCooldown">Available in <span id="cooldownLeft">30</span>s</span>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <a href="{{ url_for('auth.login') }}">← Back to Login</a>
+        </div>
+    </div>
+
+    <script>
+    (() => {
+        'use strict';
+
+        /* ── OTP box auto-tab logic ──────────────────────────────── */
+        const boxes   = Array.from(document.querySelectorAll('.otp-box'));
+        const hidden  = document.getElementById('otpHidden');
+        const verifyBtn = document.getElementById('verifyBtn');
+
+        function syncHidden() {
+            hidden.value = boxes.map(b => b.value).join('');
+        }
+
+        boxes.forEach((box, idx) => {
+            box.addEventListener('input', e => {
+                // Keep only the last entered digit
+                box.value = box.value.replace(/\D/g, '').slice(-1);
+                box.classList.toggle('filled', box.value !== '');
+                syncHidden();
+                if (box.value && idx < boxes.length - 1) {
+                    boxes[idx + 1].focus();
+                }
+            });
+
+            box.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !box.value && idx > 0) {
+                    boxes[idx - 1].focus();
+                }
+                if (e.key === 'ArrowLeft'  && idx > 0)              boxes[idx - 1].focus();
+                if (e.key === 'ArrowRight' && idx < boxes.length-1) boxes[idx + 1].focus();
+            });
+
+            // Handle paste on any box
+            box.addEventListener('paste', e => {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData)
+                    .getData('text').replace(/\D/g, '').slice(0, 6);
+                paste.split('').forEach((ch, i) => {
+                    if (boxes[i]) {
+                        boxes[i].value = ch;
+                        boxes[i].classList.add('filled');
+                    }
+                });
+                syncHidden();
+                const nextEmpty = boxes.findIndex(b => !b.value);
+                (nextEmpty !== -1 ? boxes[nextEmpty] : boxes[boxes.length - 1]).focus();
+            });
+        });
+
+        // Focus first box on load
+        boxes[0].focus();
+
+        /* ── Form validation ─────────────────────────────────────── */
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+            syncHidden();
+            const otp = hidden.value;
+            if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+                e.preventDefault();
+                boxes.forEach(b => b.classList.add('is-invalid'));
+                setTimeout(() => boxes.forEach(b => b.classList.remove('is-invalid')), 600);
+                boxes[0].focus();
+            }
+        });
+
+        /* ── OTP countdown timer (5 min = 300 s) ────────────────── */
+        const timerEl    = document.getElementById('otpTimer');
+        const timeLeftEl = document.getElementById('timeLeft');
+        let totalSeconds = 5 * 60;
+
+        const countdown = setInterval(() => {
+            totalSeconds--;
+            if (totalSeconds <= 0) {
+                clearInterval(countdown);
+                timerEl.classList.add('expired');
+                timeLeftEl.textContent = 'Expired';
+                verifyBtn.disabled = true;
+                verifyBtn.textContent = '⏰ OTP Expired — Resend to continue';
+            } else {
+                const m = Math.floor(totalSeconds / 60);
+                const s = String(totalSeconds % 60).padStart(2, '0');
+                timeLeftEl.textContent = `${m}:${s}`;
+            }
+        }, 1000);
+
+        /* ── Resend cooldown (30 s from page load) ───────────────── */
+        const resendBtn      = document.getElementById('resendBtn');
+        const cooldownLeftEl = document.getElementById('cooldownLeft');
+        let cooldown = 30;
+
+        const cooldownTimer = setInterval(() => {
+            cooldown--;
+            cooldownLeftEl.textContent = cooldown;
+            if (cooldown <= 0) {
+                clearInterval(cooldownTimer);
+                resendBtn.disabled = false;
+                document.getElementById('resendCooldown').style.display = 'none';
+            }
+        }, 1000);
+    })();
+    </script>
+</body>
+</html>

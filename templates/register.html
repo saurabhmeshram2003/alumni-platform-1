@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration - Alumni Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+
+<body>
+
+    <div class="auth-container register">
+        <div class="auth-header">
+            <h1>Create an Account</h1>
+            <p>Join the secure Alumni network</p>
+        </div>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            {% set alert_class = 'alert-success' if category == 'success' else 'alert-danger' if category in ['danger',
+            'error'] else 'alert-warning' %}
+            <div class="alert {{ alert_class }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm" enctype="multipart/form-data">
+            <div class="form-grid two-cols">
+                <!-- Full Name -->
+                <div class="form-group full-width">
+                    <label class="form-label" for="name">Full Name</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Enter your full name"
+                        required>
+                    <div class="error-feedback" id="nameError">Full name must be at least 3 letters, no numbers.</div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group full-width">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control"
+                        placeholder="your.email@example.com"
+                        pattern="^[a-zA-Z][a-zA-Z0-9._%+\-]*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$"
+                        title="Email must start with a letter" required>
+                    <div class="error-feedback" id="emailError">Email must start with a letter and be a valid address.
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" class="form-control"
+                            placeholder="Create password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')"
+                            title="Toggle visibility">👁️</button>
+                    </div>
+                    <div class="password-strength" id="strengthBarContainer" style="display: none;">
+                        <div class="strength-bar" id="str-1"></div>
+                        <div class="strength-bar" id="str-2"></div>
+                        <div class="strength-bar" id="str-3"></div>
+                    </div>
+                    <div class="strength-text" id="strengthText"></div>
+                    <div class="error-feedback" id="passwordError">Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1
+                        special char.</div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label class="form-label" for="confirm_password">Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                            placeholder="Confirm password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')"
+                            title="Toggle visibility">👁️</button>
+                    </div>
+                    <div class="error-feedback" id="confirmError">Passwords do not match.</div>
+                </div>
+
+                <!-- Role -->
+                <div class="form-group">
+                    <label class="form-label" for="role">Role</label>
+                    <select id="role" name="role" class="form-control" required>
+                        <option value="" disabled selected>Select Role</option>
+                        <option value="student">Student</option>
+                        <option value="alumni">Alumni</option>
+                    </select>
+                </div>
+
+                <!-- Department -->
+                <div class="form-group">
+                    <label class="form-label" for="department">Department</label>
+                    <select id="department" name="department" class="form-control" required>
+                        <option value="" disabled selected>Select Department</option>
+                        <option value="CSE">CSE</option>
+                        <option value="IT">IT</option>
+                        <option value="Mechanical">Mechanical</option>
+                        <option value="Civil">Civil</option>
+                        <option value="AI DS">AI DS</option>
+                        <option value="ENTC">ENTC</option>
+                    </select>
+                </div>
+
+                <!-- Graduation Year -->
+                <div class="form-group">
+                    <label class="form-label" for="graduation_year">Graduation Year</label>
+                    <input type="number" id="graduation_year" name="graduation_year" class="form-control" min="2000"
+                        max="2035" placeholder="e.g. 2024" required>
+                    <div class="error-feedback" id="yearError">Year must be between 2000 and 2035.</div>
+                </div>
+
+                <!-- Company (Hidden by default) -->
+                <div class="form-group" id="companyWrapper" style="display: none;">
+                    <label class="form-label" for="company">Company</label>
+                    <input type="text" id="company" name="company" class="form-control"
+                        placeholder="Enter company name">
+                    <div class="error-feedback" id="companyError">Company is required for Alumni.</div>
+                </div>
+
+                <!-- Proof Document Type (Hidden by default) -->
+                <div class="form-group" id="proofTypeWrapper" style="display: none;">
+                    <label class="form-label" for="proof_type">Proof Document Type</label>
+                    <select id="proof_type" name="proof_type" class="form-control">
+                        <option value="" disabled selected>Select Document Type</option>
+                        <option value="Degree Certificate">Degree Certificate</option>
+                        <option value="Passing Certificate">Passing Certificate</option>
+                        <option value="Final Year Marksheet">Final Year Marksheet</option>
+                    </select>
+                    <div class="error-feedback" id="proofTypeError">Document type is required.</div>
+                </div>
+
+                <!-- Resume (Hidden by default) -->
+                <div class="form-group" id="resumeWrapper" style="display: none;">
+                    <label class="form-label" for="resume">Upload Document File (PDF/DOCX/JPG/PNG)</label>
+                    <input type="file" id="resume" name="resume" class="form-control"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    <div class="error-feedback" id="resumeError">Document file is required for Alumni.</div>
+                </div>
+
+                <!-- Skills -->
+                <div class="form-group full-width">
+                    <label class="form-label" for="skills">Skills (Optional, comma-separated)</label>
+                    <input type="text" id="skills" name="skills" class="form-control"
+                        placeholder="e.g. Python, Java, Management">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Register</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a>
+            <br><br>
+            <a href="{{ url_for('main.index') }}" style="color: var(--text-muted);">&larr; Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        const form = document.getElementById('registerForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirm_password');
+        const roleSelect = document.getElementById('role');
+        const gradYearInput = document.getElementById('graduation_year');
+        const companyInput = document.getElementById('company');
+        const companyWrapper = document.getElementById('companyWrapper');
+        const proofTypeSelect = document.getElementById('proof_type');
+        const proofTypeWrapper = document.getElementById('proofTypeWrapper');
+        const resumeInput = document.getElementById('resume');
+        const resumeWrapper = document.getElementById('resumeWrapper');
+
+        const strengthContainer = document.getElementById('strengthBarContainer');
+        const strengthText = document.getElementById('strengthText');
+        const strBars = [document.getElementById('str-1'), document.getElementById('str-2'), document.getElementById('str-3')];
+
+        // Status variables to track valid states
+        let isValidName = false;
+        let isValidEmail = false;
+        let isValidPass = false;
+
+        // Dynamic Role -> Company visibility
+        roleSelect.addEventListener('change', function () {
+            validateEmail(); // Re-validate email constraints immediately when role changes
+            if (this.value === 'alumni') {
+                companyWrapper.style.display = 'block';
+                companyInput.setAttribute('required', 'true');
+                proofTypeWrapper.style.display = 'block';
+                proofTypeSelect.setAttribute('required', 'true');
+                resumeWrapper.style.display = 'block';
+                resumeInput.setAttribute('required', 'true');
+            } else {
+                companyWrapper.style.display = 'none';
+                companyInput.removeAttribute('required');
+                companyInput.value = '';
+                companyInput.classList.remove('is-invalid');
+                proofTypeWrapper.style.display = 'none';
+                proofTypeSelect.removeAttribute('required');
+                proofTypeSelect.value = '';
+                proofTypeSelect.classList.remove('is-invalid');
+                resumeWrapper.style.display = 'none';
+                resumeInput.removeAttribute('required');
+                resumeInput.value = '';
+                resumeInput.classList.remove('is-invalid');
+            }
+        });
+
+        // Validation Regex
+        const passPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        const namePattern = /^[a-zA-Z\s]{3,}$/;
+
+        // Validation functions
+        function validateName() {
+            if (namePattern.test(nameInput.value.trim())) {
+                nameInput.classList.remove('is-invalid');
+                nameInput.classList.add('is-valid');
+                isValidName = true;
+            } else {
+                nameInput.classList.remove('is-valid');
+                nameInput.classList.add('is-invalid');
+                isValidName = false;
+            }
+        }
+
+        function validateEmail() {
+            const val = emailInput.value.trim();
+            const currentRole = roleSelect.value;
+            const emailError = document.getElementById('emailError');
+
+            // Must start with a letter
+            if (val.length > 0 && !/^[a-zA-Z]/.test(val)) {
+                emailInput.classList.remove('is-valid');
+                emailInput.classList.add('is-invalid');
+                emailError.style.display = 'block';
+                emailError.textContent = 'Email must start with a letter.';
+                isValidEmail = false;
+                return;
+            }
+
+            // Basic email format check
+            const isEmailValid = /^[a-zA-Z][^\s@]*@[^\s@]+\.[^\s@]+$/.test(val);
+            if (!isEmailValid && val.length > 0) {
+                emailInput.classList.remove('is-valid');
+                emailInput.classList.add('is-invalid');
+                emailError.style.display = 'block';
+                emailError.textContent = 'Please enter a valid email address.';
+                isValidEmail = false;
+                return;
+            }
+
+            // 🔥 ROLE-BASED EMAIL VALIDATION (FIXED)
+            if (currentRole === 'student') {
+                // Student: MUST use @mgmcen.ac.in
+                if (val.endsWith('@mgmcen.ac.in')) {
+                    emailInput.classList.remove('is-invalid');
+                    emailInput.classList.add('is-valid');
+                    emailError.style.display = 'none';
+                    isValidEmail = true;
+                } else {
+                    emailInput.classList.remove('is-valid');
+                    emailInput.classList.add('is-invalid');
+                    emailError.style.display = 'block';
+                    emailError.textContent = 'Students must use college email (@mgmcen.ac.in)';
+                    isValidEmail = false;
+                }
+            } else if (currentRole === 'alumni') {
+                // ✅ Alumni: Can use ANY email (Gmail, Yahoo, Outlook, etc.)
+                if (isEmailValid) {
+                    emailInput.classList.remove('is-invalid');
+                    emailInput.classList.add('is-valid');
+                    emailError.style.display = 'none';
+                    isValidEmail = true;
+                } else {
+                    emailInput.classList.remove('is-valid');
+                    isValidEmail = val.length === 0 ? false : false;
+                }
+            } else {
+                // No role selected yet
+                emailInput.classList.remove('is-valid', 'is-invalid');
+                emailError.style.display = 'none';
+                isValidEmail = false;
+            }
+        }
+
+        function validatePassword() {
+            const val = passwordInput.value;
+            strengthContainer.style.display = 'flex';
+
+            // Calc strength score 1 to 5 based on conditions met
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[a-z]/.test(val) && /[A-Z]/.test(val)) score++;
+            if (/\d/.test(val)) score++;
+            if (/[\W_]/.test(val)) score++;
+
+            // Adjust bars
+            strBars.forEach(bar => bar.style.backgroundColor = '#E5E7EB'); // Reset
+
+            if (val.length === 0) {
+                strengthContainer.style.display = 'none';
+                strengthText.textContent = '';
+                passwordInput.classList.remove('is-invalid', 'is-valid');
+                isValidPass = false;
+                validateConfirm();
+                return;
+            }
+
+            if (score <= 1) {
+                strBars[0].style.backgroundColor = '#EF4444'; // Weak
+                strengthText.textContent = 'Weak';
+                strengthText.style.color = '#EF4444';
+                isValidPass = false;
+            } else if (score === 2 || score === 3) {
+                strBars[0].style.backgroundColor = '#F59E0B'; // Med
+                strBars[1].style.backgroundColor = '#F59E0B';
+                strengthText.textContent = 'Medium';
+                strengthText.style.color = '#F59E0B';
+                isValidPass = false;
+            } else if (score === 4) {
+                strBars[0].style.backgroundColor = '#10B981'; // Strong
+                strBars[1].style.backgroundColor = '#10B981';
+                strBars[2].style.backgroundColor = '#10B981';
+                strengthText.textContent = 'Strong';
+                strengthText.style.color = '#10B981';
+                isValidPass = true;
+            }
+
+            if (isValidPass) {
+                passwordInput.classList.remove('is-invalid');
+                passwordInput.classList.add('is-valid');
+            } else {
+                passwordInput.classList.remove('is-valid');
+                passwordInput.classList.add('is-invalid');
+            }
+            validateConfirm();
+        }
+
+        function validateConfirm() {
+            if (confirmInput.value.length === 0) {
+                confirmInput.classList.remove('is-invalid', 'is-valid');
+                return;
+            }
+            if (confirmInput.value === passwordInput.value && isValidPass) {
+                confirmInput.classList.remove('is-invalid');
+                confirmInput.classList.add('is-valid');
+            } else {
+                confirmInput.classList.remove('is-valid');
+                confirmInput.classList.add('is-invalid');
+            }
+        }
+
+        function validateYear() {
+            const val = parseInt(gradYearInput.value);
+            if (val >= 2000 && val <= 2035) {
+                gradYearInput.classList.remove('is-invalid');
+                gradYearInput.classList.add('is-valid');
+            } else {
+                gradYearInput.classList.remove('is-valid');
+                gradYearInput.classList.add('is-invalid');
+            }
+        }
+
+        // Attach listeners
+        nameInput.addEventListener('keyup', validateName);
+        nameInput.addEventListener('blur', validateName);
+
+        emailInput.addEventListener('keyup', validateEmail);
+        emailInput.addEventListener('blur', validateEmail);
+
+        passwordInput.addEventListener('keyup', validatePassword);
+
+        confirmInput.addEventListener('keyup', validateConfirm);
+
+        gradYearInput.addEventListener('change', validateYear);
+        gradYearInput.addEventListener('keyup', validateYear);
+
+        form.addEventListener('submit', function (e) {
+            validateName();
+            validateEmail();
+            validatePassword();
+            validateConfirm();
+            validateYear();
+
+            let prevent = false;
+
+            if (!isValidName) {
+                prevent = true;
+            }
+
+            if (!isValidEmail) {
+                prevent = true;
+            }
+
+            if (!isValidPass) {
+                prevent = true;
+            }
+
+            if (confirmInput.value !== passwordInput.value) {
+                prevent = true;
+            }
+
+            const yr = parseInt(gradYearInput.value);
+            if (isNaN(yr) || yr < 2000 || yr > 2035) {
+                prevent = true;
+            }
+
+            if (roleSelect.value === 'alumni') {
+                if (!companyInput.value.trim()) {
+                    companyInput.classList.add('is-invalid');
+                    prevent = true;
+                }
+                if (!proofTypeSelect.value) {
+                    proofTypeSelect.classList.add('is-invalid');
+                    prevent = true;
+                } else {
+                    proofTypeSelect.classList.remove('is-invalid');
+                }
+
+                if (!resumeInput.files || resumeInput.files.length === 0) {
+                    resumeInput.classList.add('is-invalid');
+                    prevent = true;
+                } else {
+                    resumeInput.classList.remove('is-invalid');
+                }
+            }
+
+            if (prevent) {
+                e.preventDefault();
+                // Scroll to first error
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

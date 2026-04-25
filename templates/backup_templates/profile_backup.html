@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block title %}My Profile - AlumniPlatform{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row gap-6" x-data="{ tab: 'about', editMode: false }">
+    <!-- Sidebar / Identity Column -->
+    <div class="w-full md:w-80 flex-shrink-0">
+        <div class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden sticky top-24">
+            <div class="h-32 bg-gradient-to-br from-primary to-accent relative">
+                <!-- Image Upload Form -->
+                {% if is_owner %}
+                <form action="{{ url_for('alumni.upload_image') }}" method="POST" enctype="multipart/form-data" class="absolute bottom-2 right-2 space-y-1">
+                    <label for="profile_image_input" class="cursor-pointer bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-white rounded-full h-10 w-10 flex items-center justify-center shadow-lg text-sm transition-all hover:scale-105" title="Change profile picture">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" id="profile_image_input" name="profile_image" class="hidden" accept="image/*,.png,.jpg,.jpeg,.gif" onchange="document.getElementById('upload_submit').click()">
+                    <button type="submit" class="hidden px-3 py-1 bg-primary text-white text-xs rounded-full hover:bg-opacity-90 transition-colors" id="upload_submit">Upload</button>
+                </form>
+                {% endif %}
+            </div>
+            
+            <div class="px-6 pb-6 pt-0 relative border-b border-gray-100 dark:border-gray-800">
+                <img src="{{ url_for('static', filename='uploads/' ~ user.profile_image) if user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ user.name|urlencode ~ '&background=1E3A8A&color=fff' }}" 
+                     class="w-24 h-24 rounded-full border-4 border-white dark:border-darkCard mx-auto -mt-12 object-cover bg-white shadow-sm relative z-10">
+                
+                <div class="text-center mt-3">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ user.name }}</h2>
+                    <p class="text-sm font-medium uppercase tracking-wider text-primary dark:text-secondary mt-1">{{ user.role }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Class of {{ user.graduation_year }} &bull; {{ user.department }}</p>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Contact Info -->
+                <ul class="space-y-4 text-sm">
+                    <li class="flex items-center text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-envelope w-6 text-center text-gray-400 dark:text-gray-500"></i>
+                        <span class="truncate ml-2">{{ user.email }}</span>
+                    </li>
+                    
+                    {% if user.linkedin %}
+                    <li class="flex items-center text-gray-600 dark:text-gray-400">
+                        <i class="fab fa-linkedin w-6 text-center text-[#0077b5]"></i>
+                        <a href="{{ user.linkedin }}" target="_blank" class="truncate ml-2 hover:text-primary dark:hover:text-secondary hover:underline">LinkedIn Profile</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% if user.role == 'alumni' and user.company %}
+                    <li class="flex items-center text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-building w-6 text-center text-gray-400 dark:text-gray-500"></i>
+                        <span class="truncate ml-2">{{ user.position }} at {{ user.company }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                {% if is_owner %}
+                <button @click="editMode = !editMode; if(editMode) tab = 'about'" class="mt-6 w-full py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors">
+                    <i class="fas fa-edit mr-1"></i> <span x-text="editMode ? 'Cancel Edit' : 'Edit Profile'"></span>
+                </button>
+                {% elif current_user.role == 'student' and user.role == 'alumni' %}
+                <a href="{{ url_for('mentorship.index', req=user.id) }}" class="mt-6 flex w-full justify-center items-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-opacity-90 focus:outline-none transition-colors">
+                    <i class="fas fa-user-plus mr-1"></i> Request Mentor
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Column -->
+    <div class="flex-grow">
+        <!-- Tabs -->
+        <div class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 px-4">
+            <nav class="flex space-x-8 overflow-x-auto" aria-label="Tabs">
+                <button @click="tab = 'about'" :class="tab === 'about' ? 'border-primary text-primary dark:border-secondary dark:text-secondary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none">
+                    About
+                </button>
+                {% if user.role == 'alumni' %}
+                <button @click="tab = 'jobs'; editMode = false" :class="tab === 'jobs' ? 'border-primary text-primary dark:border-secondary dark:text-secondary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none">
+                    Jobs Posted
+                </button>
+                {% endif %}
+                <button @click="tab = 'events'; editMode = false" :class="tab === 'events' ? 'border-primary text-primary dark:border-secondary dark:text-secondary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none">
+                    Events
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="bg-white dark:bg-darkCard rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+            
+            <!-- About Tab (View & Edit Modes) -->
+            <div x-show="tab === 'about'" class="p-6 md:p-8">
+                
+                <!-- View Mode -->
+                <div x-show="!editMode">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Biography</h3>
+                    <div class="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 text-sm">
+                        {% if user.bio %}
+                            <p class="whitespace-pre-line">{{ user.bio }}</p>
+                        {% else %}
+                            <p class="italic text-gray-400">No biography provided yet.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">Skills & Expertise</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for skill in user.skills %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            {{ skill }}
+                        </span>
+                        {% else %}
+                        <span class="text-sm italic text-gray-400">No skills added yet.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Edit Mode Form -->
+                <form x-show="editMode" style="display: none;" action="{{ url_for('alumni.update_profile') }}" method="POST" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
+                            <input type="text" name="name" value="{{ user.name }}" required class="mt-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md transition-colors px-3 py-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                            <input type="text" name="department" value="{{ user.department }}" required class="mt-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md transition-colors px-3 py-2 border">
+                        </div>
+                        
+                        {% if user.role == 'alumni' %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                            <input type="text" name="company" value="{{ user.company or '' }}" class="mt-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md transition-colors px-3 py-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
+                            <input type="text" name="position" value="{{ user.position or '' }}" class="mt-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md transition-colors px-3 py-2 border">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">LinkedIn URL</label>
+                            <input type="url" name="linkedin" value="{{ user.linkedin or '' }}" placeholder="https://linkedin.com/in/username" class="mt-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md transition-colors px-3 py-2 border">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Skills <span class="text-xs text-gray-500 font-normal">(Comma separated)</span></label>
+                            <input type="text" name="skills" value="{{ user.skills|join(', ') }}" placeholder="Python, JavaScript, Data Analysis" class="mt-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md transition-colors px-3 py-2 border">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biography</label>
+                            <textarea name="bio" rows="4" class="mt-1 focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md transition-colors px-3 py-2 border">{{ user.bio or '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <button type="submit" class="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-6 rounded-full shadow-sm text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Jobs Tab -->
+            {% if user.role == 'alumni' %}
+            <div x-show="tab === 'jobs'" style="display: none;" class="p-6 md:p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ "Your" if is_owner else user.name|string + "'s" }} Job Postings</h3>
+                    {% if is_owner %}
+                    <a href="{{ url_for('jobs.post_job') }}" class="text-sm font-medium text-primary dark:text-secondary hover:underline"><i class="fas fa-plus mr-1"></i> Post New Job</a>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-4">
+                    {% for job in jobs %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ job.title }}</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ job.company }} &bull; {{ job.location }}</p>
+                            <p class="text-xs text-gray-400 mt-2">Posted on {{ job.created_at.strftime('%Y-%m-%d') if job.created_at else 'N/A' }}</p>
+                        </div>
+                        <div class="mt-4 md:mt-0 flex gap-2">
+                            {% if is_owner or current_user.role == 'admin' %}
+                            <form action="{{ url_for('jobs.delete_job', job_id=job._id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this job post?');">
+                                <button type="submit" class="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 p-2 rounded-md transition-colors"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+                            {% else %}
+                            <a href="{{ job.application_link }}" target="_blank" class="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-opacity-90 flex items-center justify-center">Apply</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-briefcase text-3xl mb-3 border-gray-100 text-gray-300 dark:text-gray-600"></i>
+                        <p>You haven't posted any jobs yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Events Tab -->
+            <div x-show="tab === 'events'" style="display: none;" class="p-6 md:p-8">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">{{ "Events You're Attending" if is_owner else "Events " ~ user.name|string ~ " is Attending" }}</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {% for event in events %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex gap-4 bg-white dark:bg-darkCard hover:border-primary dark:hover:border-secondary transition-colors">
+                        <div class="flex-shrink-0 bg-blue-50 dark:bg-gray-800 text-center rounded-lg p-2 w-16 h-16 flex flex-col justify-center">
+                            <span class="block text-xs uppercase text-primary dark:text-secondary font-bold">{{ event.date.strftime('%b') if event.date else '' }}</span>
+                            <span class="block text-lg font-extrabold text-gray-900 dark:text-white">{{ event.date.strftime('%d') if event.date else '' }}</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900 dark:text-white line-clamp-1">{{ event.title }}</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1"><i class="fas fa-map-marker-alt w-4"></i> {{ event.location }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-calendar-times text-3xl mb-3 text-gray-300 dark:text-gray-600"></i>
+                        <p>You haven't registered for any events.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

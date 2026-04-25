@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Post Job Recommendation - AlumniPlatform{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8">
+    <div class="mb-6">
+        <a href="{{ url_for('jobs.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Job Recommendation Board
+        </a>
+    </div>
+    
+    <div class="bg-white dark:bg-darkCard rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div class="bg-gradient-to-r from-primary to-secondary px-8 py-6 text-white">
+            <h2 class="text-2xl font-bold">Post an Opportunity</h2>
+            <p class="mt-1 opacity-90">Share job openings and internships  Recommendation with the alumni network.</p>
+        </div>
+        
+        <form action="{{ url_for('jobs.post_job') }}" method="POST" class="p-8 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Title -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
+                    <input type="text" name="title" required placeholder="e.g. Senior Software Engineer" class="focus:ring-primary focus:border-primary block w-full sm:text-lg font-medium border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg px-4 py-3 outline-none border transition-colors shadow-sm">
+                </div>
+                
+                <!-- Company -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Name</label>
+                    <input type="text" name="company" value="{{ current_user.company or '' }}" required class="focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">
+                </div>
+                
+                <!-- Location -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
+                    <input type="text" name="location" placeholder="City, Country or Remote" required class="focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">
+                </div>
+                
+                <!-- Application Link -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Application URL</label>
+                    <input type="url" name="application_link" placeholder="https://..." required class="focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors">
+                    <p class="mt-1 text-xs text-gray-500">Where should candidates apply?</p>
+                </div>
+                
+                <!-- Description -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Description</label>
+                    <textarea name="description" rows="6" required class="focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors"></textarea>
+                </div>
+                
+                <!-- Requirements -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Requirements</label>
+                    <textarea name="requirements" rows="4" class="focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2 outline-none border transition-colors" placeholder="Skills, years of experience, etc."></textarea>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-end pt-6 border-t border-gray-100 dark:border-gray-800">
+                <button type="submit" class="bg-primary hover:bg-opacity-90 text-white font-bold py-3 px-8 rounded-full shadow-md text-base transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Post Job Listing
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

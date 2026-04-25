@@ -17,7 +17,7 @@ python-dotenv==1.0.0
 
 # ── Validation & Utils ─────────────────────────────────────────────
 email-validator==2.1.0
-Pillow==10.2.0
+Pillow==10.0.1
 
 # ── Data (optional, used by seed scripts) ──────────────────────────
 pandas>=2.0.0

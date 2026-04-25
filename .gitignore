@@ -1,0 +1,68 @@
+# ── Python ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments ────────────────────────────────────────────
+venv/
+venv_pdf/
+env/
+.venv/
+ENV/
+
+# ── Environment & secrets ───────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Credentials / sensitive files ──────────────────────────────────
+*.txt
+!requirements.txt
+!TODO.md
+admin-email&login-password.txt
+admin-mail&password.txt
+alumni_credentials.txt
+mongo-restartr.txt
+
+# ── Uploads & media ─────────────────────────────────────────────────
+static/uploads/
+alumni_photos/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.webp
+file_000000005dbc7206bea9610aa79ccacc.png
+
+# ── Data / seed files (not for production) ─────────────────────────
+alumni_data.json
+alumni_new-data.json
+data.json
+seed_alumni.py
+upload_alumni_photos.py
+scratch.py
+fix_admin.py
+
+# ── macOS ───────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# ── IDE / Editor ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Flask / instance ────────────────────────────────────────────────
+instance/
+flask_session/
+
+# ── Misc ────────────────────────────────────────────────────────────
+Profile*.pdf
+*.log

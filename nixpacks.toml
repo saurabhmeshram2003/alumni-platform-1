@@ -1,0 +1,12 @@
+# nixpacks.toml
+# ──────────────────────────────────────────────────────────────────
+# Railway uses Nixpacks for builds. This file forces Python 3.11
+# and sets the correct production start command.
+# runtime.txt is ignored by Nixpacks — this file is what works.
+# ──────────────────────────────────────────────────────────────────
+
+[phases.setup]
+nixPkgs = ["python311", "python311Packages.pip"]
+
+[start]
+cmd = "gunicorn 'app:create_app()' --bind 0.0.0.0:$PORT --workers 2 --timeout 120"

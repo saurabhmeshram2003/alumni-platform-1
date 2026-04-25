@@ -1,26 +1,24 @@
 # ── Core Flask ─────────────────────────────────────────────────────
+# All versions tested against Python 3.11
 Flask==2.3.3
 Werkzeug==2.3.7
 itsdangerous==2.1.2
+click==8.1.7
 
 # ── Flask Extensions ───────────────────────────────────────────────
 Flask-Login==0.6.2
 Flask-PyMongo==2.3.0
 Flask-Mail==0.9.1
-Flask-WTF==1.2.1
 
 # ── Database ───────────────────────────────────────────────────────
+# pymongo[srv] includes dnspython for Atlas SRV URI support
 pymongo[srv]==4.6.1
 
 # ── Environment & Config ───────────────────────────────────────────
-python-dotenv==1.0.0
+python-dotenv==1.0.1
 
-# ── Validation & Utils ─────────────────────────────────────────────
-email-validator==2.1.0
-Pillow==10.0.1
-
-# ── Data (optional, used by seed scripts) ──────────────────────────
-pandas>=2.0.0
+# ── Validation ─────────────────────────────────────────────────────
+email-validator==2.1.1
 
 # ── Production WSGI server ─────────────────────────────────────────
 gunicorn==21.2.0

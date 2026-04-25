@@ -66,3 +66,4 @@ flask_session/
 # ── Misc ────────────────────────────────────────────────────────────
 Profile*.pdf
 *.log
+ runtime.txt

@@ -15,12 +15,10 @@
       <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full
                   bg-purple-500/20 blur-3xl animate-pulse"></div>
       <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full
-                  bg-indigo-500/20 blur-3xl animate-pulse"
-           style="animation-delay: 1.5s;"></div>
+                  bg-indigo-500/20 blur-3xl animate-pulse" style="animation-delay: 1.5s;"></div>
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                   w-[600px] h-[600px] rounded-full
-                  bg-violet-500/10 blur-3xl animate-pulse"
-           style="animation-delay: 0.75s;"></div>
+                  bg-violet-500/10 blur-3xl animate-pulse" style="animation-delay: 0.75s;"></div>
     </div>
 
     <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8
@@ -45,7 +43,7 @@
         <span class="block mt-2
                      bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300
                      bg-clip-text text-transparent">
-          Alumni Registration Portal
+          MGM's Alumni Registration Portal
         </span>
       </h1>
 
@@ -58,9 +56,7 @@
 
       <!-- CTA Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <a href="{{ url_for('auth.register') }}"
-           id="hero-register-btn"
-           class="group inline-flex items-center gap-3 bg-white text-indigo-900
+        <a href="{{ url_for('auth.register') }}" id="hero-register-btn" class="group inline-flex items-center gap-3 bg-white text-indigo-900
                   hover:bg-indigo-50 font-bold text-base sm:text-lg
                   px-8 py-4 rounded-full shadow-xl transition-all duration-300
                   hover:shadow-indigo-500/40 hover:-translate-y-1 hover:scale-105">
@@ -68,9 +64,7 @@
           Register Now
           <i class="fas fa-arrow-right text-indigo-400 group-hover:translate-x-1 transition-transform text-sm"></i>
         </a>
-        <a href="{{ url_for('auth.login') }}"
-           id="hero-login-btn"
-           class="inline-flex items-center gap-2 border-2 border-white/30
+        <a href="{{ url_for('auth.login') }}" id="hero-login-btn" class="inline-flex items-center gap-2 border-2 border-white/30
                   hover:border-white/60 text-white hover:bg-white/10
                   font-semibold text-base sm:text-lg px-8 py-4 rounded-full
                   transition-all duration-300 backdrop-blur-sm hover:-translate-y-1">
@@ -160,12 +154,12 @@
       </h2>
       <ol class="space-y-6 text-left">
         {% for step in [
-          ('1', 'fa-edit', 'indigo', 'Fill the Registration Form',
-           'Enter your name, email, department, graduation year, and select your role (Student or Alumni).'),
-          ('2', 'fa-envelope-open-text', 'purple', 'Verify Your Email',
-           'A 6-digit OTP is sent to your email. Enter it on the verification page — valid for 5 minutes.'),
-          ('3', 'fa-check-circle', 'emerald', 'Account Activated',
-           'Once verified, your account is created. Alumni accounts additionally go through admin approval.')
+        ('1', 'fa-edit', 'indigo', 'Fill the Registration Form',
+        'Enter your name, email, department, graduation year, and select your role (Student or Alumni).'),
+        ('2', 'fa-envelope-open-text', 'purple', 'Verify Your Email',
+        'A 6-digit OTP is sent to your email. Enter it on the verification page — valid for 5 minutes.'),
+        ('3', 'fa-check-circle', 'emerald', 'Account Activated',
+        'Once verified, your account is created. Alumni accounts additionally go through admin approval.')
         ] %}
         <li class="flex gap-4 items-start group">
           <div class="flex-shrink-0 w-10 h-10 rounded-full
@@ -185,9 +179,7 @@
       </ol>
 
       <div class="mt-12">
-        <a href="{{ url_for('auth.register') }}"
-           id="steps-register-btn"
-           class="inline-flex items-center gap-2 bg-primary hover:bg-indigo-700
+        <a href="{{ url_for('auth.register') }}" id="steps-register-btn" class="inline-flex items-center gap-2 bg-primary hover:bg-indigo-700
                   text-white font-bold text-base px-8 py-4 rounded-full
                   shadow-lg hover:shadow-indigo-500/30
                   transition-all duration-300 hover:-translate-y-1">

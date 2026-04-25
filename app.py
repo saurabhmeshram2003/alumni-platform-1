@@ -38,68 +38,33 @@ def create_app():
     app.register_blueprint(mentorship_bp)
     app.register_blueprint(admin_bp)
 
-    # ── REGISTRATION-ONLY MODE GATE ──────────────────────────────
-    # Set REGISTRATION_ONLY=1 in .env to restrict access to auth routes only.
-    # All other routes return 403.  Does NOT delete any logic.
-    REGISTRATION_ONLY = os.getenv('REGISTRATION_ONLY', '0').strip() == '1'
+    # ── LAUNCH MODE GATE ──────────────────────────────────────────────
+    # LAUNCH_MODE=0  →  Pre-launch: only /register + /coming-soon accessible.
+    #                    All other routes redirect to /coming-soon.
+    # LAUNCH_MODE=1  →  Full platform: every route is open normally.
+    # Toggle in Railway/Render env vars — no code change needed.
+    LAUNCH_MODE = os.getenv('LAUNCH_MODE', '0').strip() == '1'
 
-    # Allowed URL prefixes/endpoints when mode is active
-    _ALLOWED_ENDPOINTS = {
-        'main.index',
-        'auth.login',
-        'auth.register',
-        'auth.verify_otp',
-        'auth.resend_otp',
-        'auth.logout',
-        'static',           # CSS / JS / images must still load
+    # Endpoints always accessible regardless of launch mode
+    _PRE_LAUNCH_ALLOWED = {
+        'main.index',         # landing page
+        'main.coming_soon',   # coming soon page
+        'auth.register',      # registration form
+        'auth.verify_otp',    # OTP verification
+        'auth.resend_otp',    # resend OTP
+        'static',             # CSS / JS / images
     }
 
-    _RESTRICTED_403 = '''
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Access Restricted – Alumni Registration Portal</title>
-      <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800
-                 flex items-center justify-center font-sans">
-      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-10 text-center text-white
-                  shadow-2xl max-w-md mx-4 border border-white/20">
-        <div class="text-6xl mb-4">🔒</div>
-        <h1 class="text-3xl font-extrabold mb-2">Access Restricted</h1>
-        <p class="text-indigo-200 mb-6 text-sm">
-          This portal is currently open for <strong>registration only</strong>.
-          Please register or log in to continue.
-        </p>
-        <div class="flex gap-3 justify-center flex-wrap">
-          <a href="/register"
-             class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-6
-                    rounded-full transition-all shadow-lg">
-            Register Now
-          </a>
-          <a href="/login"
-             class="border border-white/40 hover:bg-white/10 text-white font-bold py-2 px-6
-                    rounded-full transition-all">
-            Log In
-          </a>
-        </div>
-      </div>
-    </body>
-    </html>
-    '''
-
     @app.before_request
-    def registration_only_gate():
-        if not REGISTRATION_ONLY:
-            return  # Full access – do nothing
+    def launch_mode_gate():
+        """Pre-launch guard: only registration flow is accessible."""
+        if LAUNCH_MODE:
+            return  # Platform is live – full access
         endpoint = request.endpoint or ''
-        # Allow any endpoint that starts with an allowed name
-        if any(endpoint == ep or endpoint.startswith('static') for ep in _ALLOWED_ENDPOINTS):
-            return
-        # Block everything else with a friendly 403 page
-        return _RESTRICTED_403, 403
+        if any(endpoint == ep or endpoint.startswith('static') for ep in _PRE_LAUNCH_ALLOWED):
+            return  # Allowed through
+        # Everything else → graceful redirect to coming-soon
+        return redirect(url_for('main.coming_soon'))
 
     @app.after_request
     def after_request(response):

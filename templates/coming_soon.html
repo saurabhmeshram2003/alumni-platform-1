@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registration Successful — MGM Alumni Platform</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+
+    /* ── Starfield canvas ── */
+    #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ── Floating orbs ── */
+    .orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(80px);
+      animation: float 8s ease-in-out infinite alternate;
+    }
+    @keyframes float {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, -40px) scale(1.08); }
+    }
+
+    /* ── Checkmark animation ── */
+    @keyframes pop-in {
+      0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+      60%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .check-anim { animation: pop-in 0.7s cubic-bezier(.36,.07,.19,.97) both; }
+
+    /* ── Pulse ring ── */
+    @keyframes ping-slow {
+      0%   { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .ping-slow { animation: ping-slow 2.2s ease-out infinite; }
+
+    /* ── Shimmer text ── */
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    .shimmer-text {
+      background: linear-gradient(90deg,
+        #818cf8 0%, #c084fc 25%, #f472b6 50%, #c084fc 75%, #818cf8 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 4s linear infinite;
+    }
+
+    /* ── Counter ── */
+    @keyframes count-up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+    .count-anim { animation: count-up 0.6s ease both; }
+
+    /* ── Card entrance ── */
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .slide-up { animation: slide-up 0.8s cubic-bezier(.22,.68,0,1.2) both; }
+    .delay-1 { animation-delay: 0.15s; }
+    .delay-2 { animation-delay: 0.3s; }
+    .delay-3 { animation-delay: 0.45s; }
+    .delay-4 { animation-delay: 0.6s; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-[#0a0a1a] text-white overflow-x-hidden">
+
+  <!-- ══ Starfield canvas ══════════════════════════════════════════ -->
+  <canvas id="stars"></canvas>
+
+  <!-- ══ Background orbs ══════════════════════════════════════════ -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="orb w-[500px] h-[500px] bg-indigo-600/25 top-[-120px] right-[-100px]"
+         style="animation-delay:0s;"></div>
+    <div class="orb w-[400px] h-[400px] bg-purple-600/20 bottom-[-100px] left-[-80px]"
+         style="animation-delay:2s;"></div>
+    <div class="orb w-[300px] h-[300px] bg-pink-600/15 top-[40%] left-[30%]"
+         style="animation-delay:4s;"></div>
+  </div>
+
+  <!-- ══ Page content ═════════════════════════════════════════════ -->
+  <div class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-16">
+
+    <!-- Flash messages (from Flask) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="w-full max-w-lg mb-6">
+      {% for category, message in messages %}
+      <div class="rounded-xl px-5 py-3 mb-2 text-sm font-medium
+                  {% if category == 'success' %}bg-green-500/20 border border-green-400/30 text-green-300
+                  {% elif category == 'danger' %}bg-red-500/20 border border-red-400/30 text-red-300
+                  {% else %}bg-indigo-500/20 border border-indigo-400/30 text-indigo-300{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- ── Main card ───────────────────────────────────────────── -->
+    <div class="slide-up w-full max-w-2xl bg-white/5 backdrop-blur-xl border border-white/10
+                rounded-3xl shadow-2xl p-8 sm:p-12 text-center">
+
+      <!-- Success badge -->
+      <div class="relative inline-flex items-center justify-center mb-8">
+        <span class="ping-slow absolute w-24 h-24 rounded-full bg-green-400/30"></span>
+        <div class="check-anim relative w-20 h-20 rounded-full
+                    bg-gradient-to-br from-green-400 to-emerald-600
+                    flex items-center justify-center shadow-lg shadow-green-500/30">
+          <i class="fas fa-check text-white text-3xl"></i>
+        </div>
+      </div>
+
+      <!-- Heading -->
+      <h1 class="slide-up delay-1 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-3">
+        <span class="shimmer-text">Registration Successful!</span>
+      </h1>
+
+      <!-- Subheading -->
+      <p class="slide-up delay-2 text-indigo-200 text-base sm:text-lg leading-relaxed max-w-lg mx-auto mb-8">
+        You're officially on the list! 🎓 We're putting the finishing touches on the
+        <strong class="text-white">MGM Alumni Platform</strong>.
+        We'll send you an email as soon as we go live.
+      </p>
+
+      <!-- Divider -->
+      <div class="slide-up delay-2 flex items-center gap-4 my-8">
+        <div class="flex-1 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent"></div>
+        <span class="text-xs text-indigo-400 uppercase tracking-widest font-semibold">What's coming</span>
+        <div class="flex-1 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent"></div>
+      </div>
+
+      <!-- Feature pills -->
+      <div class="slide-up delay-3 grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+
+        <div class="group bg-white/5 hover:bg-indigo-500/10 border border-white/10
+                    hover:border-indigo-400/30 rounded-2xl p-5 transition-all duration-300
+                    hover:-translate-y-1 cursor-default">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center
+                      mx-auto mb-3 group-hover:scale-110 transition-transform">
+            <i class="fas fa-users text-indigo-400"></i>
+          </div>
+          <h3 class="text-sm font-bold text-white mb-1">Alumni Directory</h3>
+          <p class="text-xs text-indigo-300 leading-relaxed">
+            Connect with graduates across industries worldwide.
+          </p>
+        </div>
+
+        <div class="group bg-white/5 hover:bg-purple-500/10 border border-white/10
+                    hover:border-purple-400/30 rounded-2xl p-5 transition-all duration-300
+                    hover:-translate-y-1 cursor-default">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center
+                      mx-auto mb-3 group-hover:scale-110 transition-transform">
+            <i class="fas fa-chalkboard-teacher text-purple-400"></i>
+          </div>
+          <h3 class="text-sm font-bold text-white mb-1">Mentorship</h3>
+          <p class="text-xs text-indigo-300 leading-relaxed">
+            Guide or get guided by experienced alumni mentors.
+          </p>
+        </div>
+
+        <div class="group bg-white/5 hover:bg-pink-500/10 border border-white/10
+                    hover:border-pink-400/30 rounded-2xl p-5 transition-all duration-300
+                    hover:-translate-y-1 cursor-default">
+          <div class="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center
+                      mx-auto mb-3 group-hover:scale-110 transition-transform">
+            <i class="fas fa-briefcase text-pink-400"></i>
+          </div>
+          <h3 class="text-sm font-bold text-white mb-1">Jobs & Events</h3>
+          <p class="text-xs text-indigo-300 leading-relaxed">
+            Exclusive opportunities posted by the alumni community.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Live countdown-style status bar -->
+      <div class="slide-up delay-3 bg-white/5 border border-white/10 rounded-2xl p-5 mb-8">
+        <div class="flex items-center justify-between text-xs text-indigo-300 mb-3">
+          <span class="font-semibold text-white">Platform Progress</span>
+          <span class="font-bold text-green-400">Almost Ready!</span>
+        </div>
+        <div class="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+          <div id="progress-bar"
+               class="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
+                      transition-all duration-2000 ease-out"
+               style="width: 0%;">
+          </div>
+        </div>
+        <p class="text-xs text-indigo-400 mt-3 text-center">
+          <i class="fas fa-circle-notch fa-spin mr-1"></i>
+          Building something amazing for the MGM community…
+        </p>
+      </div>
+
+      <!-- CTA -->
+      <div class="slide-up delay-4 flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="{{ url_for('main.index') }}"
+           class="inline-flex items-center justify-center gap-2
+                  bg-gradient-to-r from-indigo-600 to-purple-600
+                  hover:from-indigo-500 hover:to-purple-500
+                  text-white font-bold px-7 py-3 rounded-full
+                  shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50
+                  transition-all duration-300 hover:-translate-y-0.5">
+          <i class="fas fa-home text-sm"></i>
+          Back to Home
+        </a>
+        <a href="{{ url_for('auth.register') }}"
+           class="inline-flex items-center justify-center gap-2
+                  border border-white/20 hover:border-indigo-400/50 hover:bg-white/5
+                  text-indigo-200 hover:text-white font-semibold px-7 py-3 rounded-full
+                  transition-all duration-300 hover:-translate-y-0.5">
+          <i class="fas fa-user-plus text-sm"></i>
+          Register Another
+        </a>
+      </div>
+
+    </div><!-- /card -->
+
+    <!-- Footer note -->
+    <p class="slide-up delay-4 mt-8 text-xs text-indigo-500 text-center">
+      MGM College of Engineering — Alumni Platform &copy; 2025 &nbsp;·&nbsp;
+      <span class="text-indigo-400">You'll receive an email when the platform launches.</span>
+    </p>
+
+  </div><!-- /content -->
+
+  <!-- ══ Starfield script ══════════════════════════════════════════ -->
+  <script>
+    // ── Starfield ─────────────────────────────────────────────────
+    const canvas = document.getElementById('stars');
+    const ctx    = canvas.getContext('2d');
+    let stars    = [];
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function initStars(n = 160) {
+      stars = Array.from({ length: n }, () => ({
+        x:    Math.random() * canvas.width,
+        y:    Math.random() * canvas.height,
+        r:    Math.random() * 1.4 + 0.2,
+        a:    Math.random(),
+        da:   (Math.random() - 0.5) * 0.008,
+        dx:   (Math.random() - 0.5) * 0.12,
+        dy:   (Math.random() - 0.5) * 0.12,
+      }));
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const s of stars) {
+        s.a  = Math.max(0.05, Math.min(1, s.a + s.da));
+        if (s.a <= 0.05 || s.a >= 1) s.da *= -1;
+        s.x  = (s.x + s.dx + canvas.width)  % canvas.width;
+        s.y  = (s.y + s.dy + canvas.height) % canvas.height;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(180,200,255,${s.a})`;
+        ctx.fill();
+      }
+      requestAnimationFrame(drawStars);
+    }
+
+    resize();
+    initStars();
+    drawStars();
+    window.addEventListener('resize', () => { resize(); initStars(); });
+
+    // ── Progress bar animation ─────────────────────────────────────
+    setTimeout(() => {
+      document.getElementById('progress-bar').style.width = '82%';
+    }, 400);
+  </script>
+
+</body>
+</html>

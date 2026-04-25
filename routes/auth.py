@@ -11,6 +11,7 @@ Flow:
 """
 
 import re
+import os
 from datetime import datetime
 
 from flask import (Blueprint, render_template, redirect, url_for,
@@ -301,6 +302,13 @@ def verify_otp():
         # ── SUCCESS — promote pending_user → users ────────────────────
         PendingUser.promote_to_users(email)
         session.pop('otp_email', None)
+
+        # Pre-launch: send to coming-soon page; full launch: send to login
+        LAUNCH_MODE = os.getenv('LAUNCH_MODE', '0').strip() == '1'
+        if not LAUNCH_MODE:
+            flash('🎉 Registration complete! We\'ll notify you when the platform goes live.', 'success')
+            return redirect(url_for('main.coming_soon'))
+
         flash('🎉 Email verified successfully! You can now log in.', 'success')
         return redirect(url_for('auth.login'))
 

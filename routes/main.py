@@ -3,8 +3,7 @@ routes/main.py
 ──────────────────────────────────────────────────────────────────
 Homepage + Coming Soon routes.
 
-LAUNCH_MODE=0  →  Pre-launch: index renders as registration portal,
-                  /coming-soon is the post-registration landing page.
+LAUNCH_MODE=0  →  Pre-launch: index renders as registration portal.
 LAUNCH_MODE=1  →  Full platform: normal homepage with stats + alumni.
 ──────────────────────────────────────────────────────────────────
 """
@@ -14,16 +13,12 @@ from extensions import mongo
 
 main_bp = Blueprint('main', __name__)
 
-LAUNCH_MODE = os.getenv('LAUNCH_MODE', '0').strip() == '1'
-
 
 @main_bp.route('/')
 def index():
-    if not LAUNCH_MODE:
-        # Pre-launch: clean registration portal, no DB queries
-        return render_template('index.html', stats={}, featured_alumni=[])
+    # Read LAUNCH_MODE per-request so .env changes take effect without restart
+    launch_mode = os.getenv('LAUNCH_MODE', '1').strip() == '1'
 
-    # ── Full mode: original logic preserved ──────────────────────────
     alumni_count  = mongo.db.users.count_documents({'role': 'alumni', 'is_approved': True})
     jobs_count    = mongo.db.jobs.count_documents({})
     events_count  = mongo.db.events.count_documents({})
@@ -40,13 +35,11 @@ def index():
     ]
     featured_alumni = list(mongo.db.users.aggregate(pipeline))
 
-    return render_template('index.html', stats=stats, featured_alumni=featured_alumni)
+    return render_template('index.html', stats=stats, featured_alumni=featured_alumni,
+                           launch_mode=launch_mode)
 
 
 @main_bp.route('/coming-soon')
 def coming_soon():
-    """
-    Post-registration landing page shown during pre-launch period.
-    Accessible always (even in pre-launch mode) so the gate allows it through.
-    """
+    """Post-registration landing page shown during pre-launch period."""
     return render_template('coming_soon.html')

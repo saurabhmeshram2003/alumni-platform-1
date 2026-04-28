@@ -63,6 +63,10 @@ Thumbs.db
 instance/
 flask_session/
 
+# ── Node / JS ───────────────────────────────────────────────────────
+node_modules/
+package-lock.json
+
 # ── Misc ────────────────────────────────────────────────────────────
 Profile*.pdf
 *.log

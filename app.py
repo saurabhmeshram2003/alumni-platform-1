@@ -47,7 +47,7 @@ def create_app():
     #                    All other routes redirect to /coming-soon.
     # LAUNCH_MODE=1  →  Full platform: every route is open normally.
     # Toggle in Railway/Render env vars — no code change needed.
-    LAUNCH_MODE = os.getenv('LAUNCH_MODE', '0').strip() == '1'
+    LAUNCH_MODE = os.getenv('LAUNCH_MODE', '1').strip() == '1'
 
     # Endpoints always accessible regardless of launch mode
     _PRE_LAUNCH_ALLOWED = {

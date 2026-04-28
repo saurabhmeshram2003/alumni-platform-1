@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Moderate Stories – Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-8 px-4">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Story Moderation</h2>
+            <p class="mt-1 text-gray-500 dark:text-gray-400">Review and approve alumni success stories before they go live.</p>
+        </div>
+        <a href="{{ url_for('stories.index') }}" class="text-sm text-primary hover:underline">
+            <i class="fas fa-eye mr-1"></i> View Public Feed
+        </a>
+    </div>
+
+    <!-- Analytics strip -->
+    <div id="analytics-strip" class="grid grid-cols-3 gap-4 mb-8"
+         x-data="{ total: 0, views: 0, likes: 0 }"
+         x-init="fetch('/api/analytics/stories').then(r=>r.json()).then(d=>{ total=d.total_stories; views=d.total_views; likes=d.total_likes; })">
+        <div class="bg-white dark:bg-darkCard rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm text-center">
+            <p class="text-3xl font-extrabold text-primary" x-text="total">–</p>
+            <p class="text-xs text-gray-500 uppercase tracking-wide mt-1">Published Stories</p>
+        </div>
+        <div class="bg-white dark:bg-darkCard rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm text-center">
+            <p class="text-3xl font-extrabold text-emerald-500" x-text="views">–</p>
+            <p class="text-xs text-gray-500 uppercase tracking-wide mt-1">Total Views</p>
+        </div>
+        <div class="bg-white dark:bg-darkCard rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm text-center">
+            <p class="text-3xl font-extrabold text-red-500" x-text="likes">–</p>
+            <p class="text-xs text-gray-500 uppercase tracking-wide mt-1">Total Likes</p>
+        </div>
+    </div>
+
+    <!-- Pending Section -->
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <span class="inline-flex items-center justify-center w-7 h-7 bg-red-100 text-red-600 text-xs font-extrabold rounded-full">{{ pending|length }}</span>
+        Awaiting Approval
+    </h3>
+
+    {% if not pending %}
+    <div class="bg-white dark:bg-darkCard rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center mb-8">
+        <i class="fas fa-check-circle text-4xl text-emerald-400 mb-3 block"></i>
+        <p class="text-gray-500 dark:text-gray-400">All caught up! No pending stories.</p>
+    </div>
+    {% else %}
+    <div class="space-y-4 mb-8">
+        {% for s in pending %}
+        <div class="bg-white dark:bg-darkCard rounded-2xl border border-amber-200 dark:border-amber-800 shadow-sm p-6">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div class="flex-grow">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-bold">Pending Review</span>
+                        {% for tag in s.get('tags', [])[:3] %}
+                        <span class="text-xs px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-1">{{ s.title }}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">by <strong>{{ s.author_name }}</strong> &bull; {{ s.author_dept or '' }}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 line-clamp-3">{{ s.content[:300] }}…</p>
+                </div>
+                <div class="flex flex-col gap-2 flex-shrink-0">
+                    <form action="{{ url_for('stories.approve', story_id=s._id) }}" method="POST">
+                        <button type="submit"
+                                class="w-full inline-flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </form>
+                    <form action="{{ url_for('stories.reject', story_id=s._id) }}" method="POST">
+                        <button type="submit"
+                                class="w-full inline-flex justify-center items-center gap-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Approved Section -->
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Published Stories ({{ approved|length }})</h3>
+    <div class="space-y-3">
+        {% for s in approved %}
+        <div class="bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 flex items-center justify-between gap-4">
+            <div class="min-w-0">
+                <h4 class="font-bold text-gray-900 dark:text-white truncate">{{ s.title }}</h4>
+                <p class="text-xs text-gray-500 mt-0.5">{{ s.author_name }} &bull; <i class="fas fa-eye mr-1"></i>{{ s.views or 0 }} views &bull; <i class="fas fa-heart mr-1 text-red-400"></i>{{ s.likes or 0 }} likes</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">Live</span>
+                <a href="{{ url_for('stories.view', story_id=s._id) }}"
+                   class="text-xs text-primary hover:underline">View</a>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-400 text-center py-4">No published stories yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

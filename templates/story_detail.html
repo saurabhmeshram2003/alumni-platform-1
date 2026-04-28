@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{{ story.title }} – Alumni Success Stories{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8 px-4">
+
+    <!-- Back link -->
+    <a href="{{ url_for('stories.index') }}" class="inline-flex items-center gap-2 text-sm text-primary hover:underline mb-6">
+        <i class="fas fa-arrow-left"></i> Back to Stories
+    </a>
+
+    <!-- Story Header -->
+    <div class="bg-white dark:bg-darkCard rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden mb-6">
+
+        {% if story.media_url %}
+        <div class="h-72 overflow-hidden">
+            <img src="{{ story.media_url }}" alt="{{ story.title }}"
+                 class="w-full h-full object-cover"
+                 onerror="this.parentElement.style.display='none'">
+        </div>
+        {% else %}
+        <div class="h-32 bg-gradient-to-r from-primary via-purple-500 to-accent flex items-center justify-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+            <i class="fas fa-star text-white text-5xl relative z-10 opacity-80"></i>
+        </div>
+        {% endif %}
+
+        <div class="p-8">
+            <!-- Tags -->
+            {% if story.tags %}
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% for tag in story.tags %}
+                <span class="text-xs px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 font-semibold">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white leading-tight mb-4">{{ story.title }}</h1>
+
+            <!-- Author Row -->
+            <div class="flex items-center justify-between flex-wrap gap-4 pb-6 border-b border-gray-100 dark:border-gray-800">
+                <div class="flex items-center gap-3">
+                    <img src="{{ url_for('static', filename='uploads/' ~ story.get('author_image','')) if story.get('author_image') and story.get('author_image') != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ story.author_name|urlencode ~ '&background=4F46E5&color=fff' }}"
+                         class="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shadow">
+                    <div>
+                        <p class="font-bold text-gray-900 dark:text-white">{{ story.author_name }}</p>
+                        <p class="text-sm text-gray-500">{{ story.get('author_company','') or story.get('author_dept','') or 'Alumni' }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-gray-400">
+                    <span><i class="fas fa-eye mr-1"></i>{{ story.views or 0 }} views</span>
+                    <span><i class="fas fa-heart mr-1 text-red-400"></i>{{ story.likes or 0 }} likes</span>
+                    {% if story.created_at %}
+                    <span><i class="fas fa-calendar mr-1"></i>{{ story.created_at[:10] }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Story Body -->
+            <div class="prose dark:prose-invert max-w-none mt-6 text-gray-700 dark:text-gray-300 leading-relaxed text-base whitespace-pre-line">
+                {{ story.content }}
+            </div>
+
+            <!-- Like Button -->
+            <div class="mt-8 flex items-center gap-4" id="like-section"
+                 x-data="likeButton('{{ story._id }}', {{ story.likes or 0 }})">
+                <button @click="toggle()"
+                        :class="liked ? 'bg-red-500 text-white border-red-500' : 'bg-white dark:bg-darkCard text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-500'"
+                        class="inline-flex items-center gap-2 border-2 font-bold py-2.5 px-6 rounded-full transition-all transform hover:scale-105 shadow-sm">
+                    <i class="fas fa-heart"></i>
+                    <span x-text="liked ? 'Liked!' : 'Like'"></span>
+                    <span class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold px-2 py-0.5 rounded-full ml-1" x-text="count"></span>
+                </button>
+
+                <button onclick="navigator.clipboard.writeText(window.location.href).then(() => alert('Link copied!'))"
+                        class="inline-flex items-center gap-2 border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary font-semibold py-2.5 px-5 rounded-full transition-all">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="bg-white dark:bg-darkCard rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                <i class="fas fa-comments text-primary mr-2"></i>Comments ({{ comments|length }})
+            </h3>
+        </div>
+
+        <!-- Comment Form -->
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+            <form action="{{ url_for('stories.comment', story_id=story._id) }}" method="POST" class="flex gap-3">
+                <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) if current_user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ current_user.name|urlencode ~ '&background=4F46E5&color=fff' }}"
+                     class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200">
+                <div class="flex-grow flex gap-2">
+                    <input type="text" name="text" required placeholder="Share your thoughts or ask a question…"
+                           class="flex-grow bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                    <button type="submit"
+                            class="flex-shrink-0 bg-primary hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Comments List -->
+        <div class="divide-y divide-gray-50 dark:divide-gray-800">
+            {% for c in comments %}
+            <div class="px-6 py-4 flex gap-3">
+                <img src="https://ui-avatars.com/api/?name={{ c.author_name|urlencode }}&background=6366F1&color=fff"
+                     class="w-9 h-9 rounded-full flex-shrink-0">
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-sm text-gray-900 dark:text-white">{{ c.author_name }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 capitalize">{{ c.author_role }}</span>
+                        <span class="text-xs text-gray-400">{{ c.created_at.strftime('%d %b, %H:%M') if c.created_at else '' }}</span>
+                    </div>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">{{ c.text }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="px-6 py-10 text-center text-sm text-gray-400">
+                <i class="fas fa-comment-slash text-3xl mb-3 block text-gray-300 dark:text-gray-700"></i>
+                No comments yet. Be the first to respond!
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('likeButton', (storyId, initialCount) => ({
+        liked: false,
+        count: initialCount,
+        async toggle() {
+            try {
+                const r = await fetch(`/success-stories/${storyId}/like`, { method: 'POST' });
+                const d = await r.json();
+                this.liked = d.liked;
+                this.count = d.likes;
+            } catch(e) { console.error('Like failed', e); }
+        }
+    }));
+});
+</script>
+{% endblock %}

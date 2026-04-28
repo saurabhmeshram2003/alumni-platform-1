@@ -28,6 +28,8 @@ def create_app():
     from routes.events import events_bp
     from routes.mentorship import mentorship_bp
     from routes.admin import admin_bp
+    from routes.stories import stories_bp
+    from routes.notifications import notifications_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -37,6 +39,8 @@ def create_app():
     app.register_blueprint(events_bp)
     app.register_blueprint(mentorship_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(stories_bp)
+    app.register_blueprint(notifications_bp)
 
     # ── LAUNCH MODE GATE ──────────────────────────────────────────────
     # LAUNCH_MODE=0  →  Pre-launch: only /register + /coming-soon accessible.
@@ -102,4 +106,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5001)))

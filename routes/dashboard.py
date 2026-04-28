@@ -29,12 +29,15 @@ def index():
 
     latest_jobs      = list(mongo.db.jobs.find().sort('created_at', -1).limit(4))
     upcoming_events  = list(mongo.db.events.find().sort('date', 1).limit(4))
+    recent_stories   = list(mongo.db.success_stories.find({'approved': True}).sort('created_at', -1).limit(3))
+    for s in recent_stories:
+        s['_id'] = str(s['_id'])
 
     stats = {
-        'total_alumni':   alumni_count,
-        'active_jobs':    jobs_count,
+        'total_alumni':    alumni_count,
+        'active_jobs':     jobs_count,
         'upcoming_events': events_count,
-        'mentorships':    mentorships_count,
+        'mentorships':     mentorships_count,
     }
 
     return render_template(
@@ -42,4 +45,5 @@ def index():
         stats=stats,
         jobs=latest_jobs,
         events=upcoming_events,
+        recent_stories=recent_stories,
     )

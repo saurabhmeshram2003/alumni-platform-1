@@ -1,41 +1,146 @@
 <!--
-  navbar.html
-  ──────────────────────────────────────────────────────────────────
-  Registration-portal mode: only Register + Login links are shown.
-  Full links (Dashboard, Directory, Profile, etc.) are hidden here;
-  they still exist in their blueprint routes and return 403 when
-  REGISTRATION_ONLY=1 is set in .env.
-  ──────────────────────────────────────────────────────────────────
+  navbar.html – Full-platform nav with:
+  • Notification bell (fetched via /api/notifications)
+  • Stories link
+  • Alumni-specific "Post Story" shortcut
 -->
 <nav class="bg-white/90 dark:bg-darkCard/90 backdrop-blur-sm shadow-sm sticky top-0 z-50
             border-b border-gray-200 dark:border-gray-800 transition-colors duration-200"
-     x-data="{ mobileMenuOpen: false }">
+     x-data="{ mobileMenuOpen: false, notifOpen: false, notifs: [], unread: 0 }"
+     x-init="
+       async function loadNotifs() {
+         try {
+           const r = await fetch('/api/notifications');
+           const d = await r.json();
+           notifs = d.notifications || [];
+           unread = d.unread || 0;
+         } catch(e) {}
+       }
+       loadNotifs();
+       setInterval(loadNotifs, 60000);
+     ">
   <div class="container mx-auto px-4">
     <div class="flex justify-between h-16">
 
-      <!-- ── Logo ───────────────────────────────────────────────── -->
+      <!-- ── Logo ─────────────────────────────────────────────── -->
       <div class="flex items-center">
         <a href="{{ url_for('main.index') }}"
            class="flex-shrink-0 flex items-center gap-2 text-primary dark:text-secondary font-bold text-xl tracking-tight">
           <i class="fas fa-graduation-cap text-2xl"></i>
-          Alumni Registration Portal
+          AlumniConnect
         </a>
       </div>
 
       <!-- ── Desktop links ──────────────────────────────────────── -->
-      <div class="hidden md:flex md:items-center md:space-x-4">
+      <div class="hidden md:flex md:items-center md:space-x-1">
 
         {% if current_user.is_authenticated %}
-          <!-- Logged-in: show name + sign-out only -->
-          <span class="text-sm text-gray-500 dark:text-gray-400">
-            👋 Hello, <strong>{{ current_user.name.split(' ')[0] }}</strong>
-          </span>
+          <!-- Nav links -->
+          <a href="{{ url_for('dashboard.index') }}"
+             class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <i class="fas fa-th-large mr-1 opacity-70"></i>Dashboard
+          </a>
+          <a href="{{ url_for('alumni.directory') }}"
+             class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <i class="fas fa-users mr-1 opacity-70"></i>Alumni
+          </a>
+          <a href="{{ url_for('jobs.index') }}"
+             class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <i class="fas fa-briefcase mr-1 opacity-70"></i>Jobs
+          </a>
+          <a href="{{ url_for('mentorship.index') }}"
+             class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <i class="fas fa-handshake mr-1 opacity-70"></i>Mentorship
+          </a>
+          <a href="{{ url_for('stories.index') }}"
+             class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            <i class="fas fa-star mr-1 opacity-70"></i>Stories
+          </a>
+
+          <!-- Notification Bell -->
+          <div class="relative ml-1" @click.away="notifOpen = false">
+            <button @click="notifOpen = !notifOpen; if(notifOpen && unread > 0) { fetch('/api/notifications/mark-read', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}); setTimeout(() => unread = 0, 400); }"
+                    id="notif-bell-btn"
+                    class="relative text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary
+                           p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none">
+              <i class="fas fa-bell text-lg"></i>
+              <span x-show="unread > 0"
+                    x-text="unread > 9 ? '9+' : unread"
+                    class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold
+                           w-4 h-4 rounded-full flex items-center justify-center leading-none"></span>
+            </button>
+
+            <!-- Dropdown -->
+            <div x-show="notifOpen"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 style="display:none;"
+                 class="absolute right-0 mt-2 w-80 bg-white dark:bg-darkCard rounded-2xl shadow-2xl
+                        border border-gray-100 dark:border-gray-800 overflow-hidden z-50">
+              <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                <span class="font-bold text-gray-900 dark:text-white text-sm">Notifications</span>
+                <a href="#" @click.prevent="fetch('/api/notifications/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); notifs.forEach(n=>n.read=true); unread=0;"
+                   class="text-xs text-primary hover:underline">Mark all read</a>
+              </div>
+              <div class="max-h-72 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
+                <template x-if="notifs.length === 0">
+                  <div class="px-4 py-8 text-center text-sm text-gray-400">
+                    <i class="fas fa-bell-slash text-2xl mb-2 block"></i>No notifications yet
+                  </div>
+                </template>
+                <template x-for="n in notifs" :key="n.id">
+                  <a :href="n.link"
+                     class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800
+                            transition-colors cursor-pointer"
+                     :class="n.read ? 'opacity-60' : ''">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                          :class="{
+                            'bg-blue-100 text-blue-600':   n.type === 'job',
+                            'bg-violet-100 text-violet-600': n.type === 'mentorship',
+                            'bg-amber-100 text-amber-600': n.type === 'story',
+                            'bg-gray-100 text-gray-600':   n.type === 'info',
+                          }">
+                      <i class="fas"
+                         :class="{
+                           'fa-briefcase':   n.type === 'job',
+                           'fa-handshake':   n.type === 'mentorship',
+                           'fa-star':        n.type === 'story',
+                           'fa-info-circle': n.type === 'info',
+                         }"></i>
+                    </span>
+                    <div class="min-w-0">
+                      <p class="text-xs font-semibold text-gray-900 dark:text-white truncate" x-text="n.title"></p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2" x-text="n.body"></p>
+                    </div>
+                  </a>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile / Sign out -->
+          <a href="{{ url_for('alumni.profile') }}"
+             class="flex items-center gap-2 ml-2 text-sm font-semibold text-gray-700 dark:text-gray-200
+                    hover:text-primary dark:hover:text-secondary transition-colors">
+            <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) if current_user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ current_user.name|urlencode ~ '&background=4F46E5&color=fff' }}"
+                 class="w-8 h-8 rounded-full object-cover border-2 border-primary/20">
+          </a>
           <a href="{{ url_for('auth.logout') }}"
              class="text-sm font-medium text-red-500 hover:text-red-600 dark:text-red-400
-                    px-4 py-2 rounded-full border border-red-300 dark:border-red-600
-                    hover:bg-red-50 dark:hover:bg-red-900/30 transition-all">
+                    px-3 py-1.5 rounded-full border border-red-300 dark:border-red-600
+                    hover:bg-red-50 dark:hover:bg-red-900/30 transition-all ml-1">
             Sign out
           </a>
+
         {% else %}
           <a href="{{ url_for('auth.login') }}"
              class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-white
@@ -59,7 +164,19 @@
       </div>
 
       <!-- ── Mobile menu button ─────────────────────────────────── -->
-      <div class="flex items-center md:hidden gap-4">
+      <div class="flex items-center md:hidden gap-3">
+        {% if current_user.is_authenticated %}
+        <!-- Mobile bell -->
+        <div class="relative" @click.away="notifOpen = false">
+          <button @click="notifOpen = !notifOpen"
+                  class="text-gray-500 dark:text-gray-400 relative p-1">
+            <i class="fas fa-bell text-lg"></i>
+            <span x-show="unread > 0" x-text="unread"
+                  class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold
+                         w-3.5 h-3.5 rounded-full flex items-center justify-center"></span>
+          </button>
+        </div>
+        {% endif %}
         <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
                 class="text-gray-500 dark:text-gray-400 focus:outline-none">
           <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
@@ -82,25 +199,15 @@
        style="display: none;">
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       {% if current_user.is_authenticated %}
-        <span class="block px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-          👋 Hello, {{ current_user.name.split(' ')[0] }}
-        </span>
-        <a href="{{ url_for('auth.logout') }}"
-           class="block px-3 py-2 rounded-md text-base font-medium text-red-600
-                  dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800">
-          Sign out
-        </a>
+        <a href="{{ url_for('dashboard.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Dashboard</a>
+        <a href="{{ url_for('alumni.directory') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Alumni</a>
+        <a href="{{ url_for('jobs.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Jobs</a>
+        <a href="{{ url_for('mentorship.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Mentorship</a>
+        <a href="{{ url_for('stories.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Success Stories</a>
+        <a href="{{ url_for('auth.logout') }}" class="block px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800">Sign out</a>
       {% else %}
-        <a href="{{ url_for('auth.login') }}"
-           class="block px-3 py-2 rounded-md text-base font-medium text-gray-700
-                  dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-          Log in
-        </a>
-        <a href="{{ url_for('auth.register') }}"
-           class="block px-3 py-2 rounded-md text-base font-bold text-primary
-                  dark:text-secondary hover:bg-gray-50 dark:hover:bg-gray-800">
-          Register Now
-        </a>
+        <a href="{{ url_for('auth.login') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Log in</a>
+        <a href="{{ url_for('auth.register') }}" class="block px-3 py-2 rounded-md text-base font-bold text-primary dark:text-secondary hover:bg-gray-50 dark:hover:bg-gray-800">Register Now</a>
       {% endif %}
     </div>
   </div>

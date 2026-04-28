@@ -6,6 +6,20 @@ from datetime import datetime
 
 jobs_bp = Blueprint('jobs', __name__)
 
+
+def _broadcast_job(job_id, title, company, poster_name):
+    """Queue in-app notifications to every active student."""
+    try:
+        from routes.notifications import broadcast_to_students
+        broadcast_to_students(
+            title=f'New opportunity: {title}',
+            body=f'{poster_name} posted a job at {company}. Tap to view!',
+            link=f'/jobs',
+            ntype='job',
+        )
+    except Exception:
+        pass  # Never break job creation because of notification failure
+
 @jobs_bp.route('/jobs')
 @login_required
 def index():
@@ -20,19 +34,27 @@ def post_job():
         return redirect(url_for('jobs.index'))
         
     if request.method == 'POST':
+        post_type = request.form.get('post_type', 'job')  # 'job' | 'internship' | 'placement'
+        company   = request.form.get('company', '')
+        title     = request.form.get('title', '')
         new_job = {
-            'title': request.form.get('title'),
-            'company': request.form.get('company'),
+            'title': title,
+            'company': company,
             'location': request.form.get('location'),
             'description': request.form.get('description'),
             'requirements': request.form.get('requirements'),
             'application_link': request.form.get('application_link'),
+            'post_type': post_type,
             'posted_by': ObjectId(current_user.id),
             'poster_name': current_user.name,
+            'saved_by': [],
+            'likes': 0,
             'created_at': datetime.utcnow()
         }
-        mongo.db.jobs.insert_one(new_job)
-        flash('Job posted successfully!', 'success')
+        result = mongo.db.jobs.insert_one(new_job)
+        # Broadcast to all students
+        _broadcast_job(result.inserted_id, title, company, current_user.name)
+        flash('Job posted and all students have been notified!', 'success')
         return redirect(url_for('jobs.index'))
         
     return render_template('post_job.html')
@@ -121,4 +143,37 @@ def api_jobs():
         j['posted_by'] = str(j['posted_by'])
         j['created_at'] = j['created_at'].isoformat() if 'created_at' in j else None
         
+    return jsonify(jobs)
+
+
+@jobs_bp.route('/api/jobs/<job_id>/save', methods=['POST'])
+@login_required
+def save_job(job_id):
+    """Toggle save/unsave a job for the current user."""
+    job = mongo.db.jobs.find_one({'_id': ObjectId(job_id)})
+    if not job:
+        return jsonify({'error': 'Not found'}), 404
+
+    uid = ObjectId(current_user.id)
+    saved_by = job.get('saved_by', [])
+    if uid in saved_by:
+        mongo.db.jobs.update_one({'_id': ObjectId(job_id)}, {'$pull': {'saved_by': uid}})
+        saved = False
+    else:
+        mongo.db.jobs.update_one({'_id': ObjectId(job_id)}, {'$push': {'saved_by': uid}})
+        saved = True
+    updated = mongo.db.jobs.find_one({'_id': ObjectId(job_id)})
+    return jsonify({'saved': saved, 'count': len(updated.get('saved_by', []))})
+
+
+@jobs_bp.route('/api/jobs/saved')
+@login_required
+def saved_jobs():
+    """Return jobs saved by the current user."""
+    uid = ObjectId(current_user.id)
+    jobs = list(mongo.db.jobs.find({'saved_by': uid}).sort('created_at', -1))
+    for j in jobs:
+        j['_id'] = str(j['_id'])
+        j['posted_by'] = str(j['posted_by'])
+        j['created_at'] = j['created_at'].isoformat() if j.get('created_at') else None
     return jsonify(jobs)

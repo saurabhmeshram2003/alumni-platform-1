@@ -274,7 +274,7 @@
         <div class="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center">
           <div class="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden ring-4 ring-indigo-100 dark:ring-indigo-900/50 group-hover:ring-indigo-300 transition-all">
             {% if alumni.get('profile_image') and alumni.profile_image != 'default.png' %}
-            <img src="{{ url_for('static', filename='uploads/profiles/' + alumni.profile_image) }}"
+            <img src="{{ url_for('static', filename='uploads/' + alumni.profile_image) }}"
                  alt="{{ alumni.name }}" class="w-full h-full object-cover">
             {% else %}
             <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">

@@ -67,6 +67,10 @@ flask_session/
 node_modules/
 package-lock.json
 
+# ── Large media (keep locally, don't push to git) ───────────────────
+static/videos/
+static/uploads/stories/
+
 # ── Misc ────────────────────────────────────────────────────────────
 Profile*.pdf
 *.log

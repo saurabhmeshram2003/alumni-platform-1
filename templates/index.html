@@ -7,13 +7,18 @@
   <!-- ═══════════════════════════════════════════════════════════════
        HERO SECTION
        ═══════════════════════════════════════════════════════════════ -->
-  <section class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 min-h-[88vh] flex items-center">
+  <section
+    class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 min-h-[88vh] flex items-center">
 
     <!-- Animated background blobs -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-purple-500/20 blur-3xl animate-pulse"></div>
-      <div class="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-indigo-500/20 blur-3xl animate-pulse" style="animation-delay:1.5s"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-violet-500/10 blur-3xl animate-pulse" style="animation-delay:0.75s"></div>
+      <div class="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-purple-500/20 blur-3xl animate-pulse">
+      </div>
+      <div class="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-indigo-500/20 blur-3xl animate-pulse"
+        style="animation-delay:1.5s"></div>
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-violet-500/10 blur-3xl animate-pulse"
+        style="animation-delay:0.75s"></div>
     </div>
 
     <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
@@ -22,7 +27,8 @@
         <!-- Left: Text -->
         <div class="text-center lg:text-left">
           <!-- Live badge -->
-          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 text-sm text-indigo-200 font-medium mb-8 shadow-lg">
+          <div
+            class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 text-sm text-indigo-200 font-medium mb-8 shadow-lg">
             <span class="relative flex h-2.5 w-2.5">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
@@ -32,45 +38,43 @@
 
           <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6">
             Welcome to
-            <span class="block mt-2 bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+            <span
+              class="block mt-2 bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
               MGM's Alumni Network
             </span>
           </h1>
 
           <p class="text-lg sm:text-xl text-indigo-200 max-w-xl mb-10 leading-relaxed">
-            Connect with <strong class="text-white">{{ stats.get('alumni_count', 54) }}+ verified alumni</strong>, find mentors, 
+            Connect with <strong class="text-white">{{ stats.get('alumni_count', 54) }}+ verified alumni</strong>, find
+            mentors,
             explore job opportunities, and stay connected with the MGM College of Engineering community.
           </p>
 
           <!-- CTA Buttons -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             {% if current_user.is_authenticated %}
-            <a href="{{ url_for('dashboard.index') }}" id="hero-dashboard-btn"
-               class="group inline-flex items-center gap-3 bg-white text-indigo-900 hover:bg-indigo-50
+            <a href="{{ url_for('dashboard.index') }}" id="hero-dashboard-btn" class="group inline-flex items-center gap-3 bg-white text-indigo-900 hover:bg-indigo-50
                       font-bold text-base sm:text-lg px-8 py-4 rounded-full shadow-xl
                       transition-all duration-300 hover:shadow-indigo-500/40 hover:-translate-y-1 hover:scale-105">
               <i class="fas fa-tachometer-alt text-indigo-600 group-hover:scale-110 transition-transform"></i>
               Go to Dashboard
               <i class="fas fa-arrow-right text-indigo-400 group-hover:translate-x-1 transition-transform text-sm"></i>
             </a>
-            <a href="{{ url_for('alumni.directory') }}" id="hero-alumni-btn"
-               class="inline-flex items-center gap-2 border-2 border-white/30 hover:border-white/60
+            <a href="{{ url_for('alumni.directory') }}" id="hero-alumni-btn" class="inline-flex items-center gap-2 border-2 border-white/30 hover:border-white/60
                       text-white hover:bg-white/10 font-semibold text-base sm:text-lg px-8 py-4 rounded-full
                       transition-all duration-300 backdrop-blur-sm hover:-translate-y-1">
               <i class="fas fa-users"></i>
               Browse Alumni
             </a>
             {% else %}
-            <a href="{{ url_for('auth.register') }}" id="hero-register-btn"
-               class="group inline-flex items-center gap-3 bg-white text-indigo-900 hover:bg-indigo-50
+            <a href="{{ url_for('auth.register') }}" id="hero-register-btn" class="group inline-flex items-center gap-3 bg-white text-indigo-900 hover:bg-indigo-50
                       font-bold text-base sm:text-lg px-8 py-4 rounded-full shadow-xl
                       transition-all duration-300 hover:shadow-indigo-500/40 hover:-translate-y-1 hover:scale-105">
               <i class="fas fa-user-plus text-indigo-600 group-hover:scale-110 transition-transform"></i>
               Register Now
               <i class="fas fa-arrow-right text-indigo-400 group-hover:translate-x-1 transition-transform text-sm"></i>
             </a>
-            <a href="{{ url_for('auth.login') }}" id="hero-login-btn"
-               class="inline-flex items-center gap-2 border-2 border-white/30 hover:border-white/60
+            <a href="{{ url_for('auth.login') }}" id="hero-login-btn" class="inline-flex items-center gap-2 border-2 border-white/30 hover:border-white/60
                       text-white hover:bg-white/10 font-semibold text-base sm:text-lg px-8 py-4 rounded-full
                       transition-all duration-300 backdrop-blur-sm hover:-translate-y-1">
               <i class="fas fa-sign-in-alt"></i>
@@ -82,22 +86,26 @@
 
         <!-- Right: Stats cards -->
         <div class="grid grid-cols-2 gap-4">
-          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
+          <div
+            class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
             <div class="text-4xl font-extrabold text-white mb-1">{{ stats.get('alumni_count', 54) }}+</div>
             <div class="text-indigo-200 text-sm font-medium">Verified Alumni</div>
             <i class="fas fa-user-graduate text-indigo-300 text-2xl mt-3 opacity-60"></i>
           </div>
-          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
+          <div
+            class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
             <div class="text-4xl font-extrabold text-white mb-1">{{ stats.get('jobs_count', 0) }}</div>
             <div class="text-indigo-200 text-sm font-medium">Job Openings</div>
             <i class="fas fa-briefcase text-indigo-300 text-2xl mt-3 opacity-60"></i>
           </div>
-          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
+          <div
+            class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
             <div class="text-4xl font-extrabold text-white mb-1">{{ stats.get('events_count', 0) }}</div>
             <div class="text-indigo-200 text-sm font-medium">Events</div>
             <i class="fas fa-calendar-alt text-indigo-300 text-2xl mt-3 opacity-60"></i>
           </div>
-          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
+          <div
+            class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
             <div class="text-4xl font-extrabold text-white mb-1">10+</div>
             <div class="text-indigo-200 text-sm font-medium">Years of Legacy</div>
             <i class="fas fa-award text-indigo-300 text-2xl mt-3 opacity-60"></i>
@@ -124,15 +132,20 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for icon, color, title, desc in [
-          ('fa-users', 'indigo', 'Alumni Directory', 'Search and connect with 54+ verified MGM graduates across industries.'),
-          ('fa-chalkboard-teacher', 'emerald', 'Mentorship', 'Guide current students or request a mentor to fast-track your career.'),
-          ('fa-briefcase', 'violet', 'Job Board', 'Exclusive job postings shared by alumni for students and graduates.'),
-          ('fa-calendar-check', 'amber', 'Events', 'Stay informed about reunions, seminars, and networking events.'),
-          ('fa-book-open', 'rose', 'Alumni Stories', 'Read inspiring success stories from fellow MGM graduates.'),
-          ('fa-shield-alt', 'teal', 'Verified & Secure', 'Email OTP verification ensures every account is genuine and secure.')
+        ('fa-users', 'indigo', 'Alumni Directory', 'Search and connect with 54+ verified MGM graduates across
+        industries.'),
+        ('fa-chalkboard-teacher', 'emerald', 'Mentorship', 'Guide current students or request a mentor to fast-track
+        your career.'),
+        ('fa-briefcase', 'violet', 'Job Board', 'Exclusive job postings shared by alumni for students and graduates.'),
+        ('fa-calendar-check', 'amber', 'Events', 'Stay informed about reunions, seminars, and networking events.'),
+        ('fa-book-open', 'rose', 'Alumni Stories', 'Read inspiring success stories from fellow MGM graduates.'),
+        ('fa-shield-alt', 'teal', 'Verified & Secure', 'Email OTP verification ensures every account is genuine and
+        secure.')
         ] %}
-        <div class="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-          <div class="w-12 h-12 rounded-xl bg-{{ color }}-100 dark:bg-{{ color }}-900/50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <div
+          class="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+          <div
+            class="w-12 h-12 rounded-xl bg-{{ color }}-100 dark:bg-{{ color }}-900/50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <i class="fas {{ icon }} text-{{ color }}-600 dark:text-{{ color }}-400 text-xl"></i>
           </div>
           <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">{{ title }}</h3>
@@ -150,7 +163,9 @@
     <div class="max-w-6xl mx-auto">
 
       <div class="text-center mb-14">
-        <span class="inline-block bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">Campus Memories</span>
+        <span
+          class="inline-block bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">Campus
+          Memories</span>
         <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">Our Gallery</h2>
         <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
           Relive the best moments from campus life, alumni meets, and college events.
@@ -159,11 +174,10 @@
 
       <!-- Gallery Carousel Card -->
       <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900
-                  rounded-3xl shadow-2xl border border-indigo-100 dark:border-indigo-900/40 overflow-hidden"
-           x-data="{
+                  rounded-3xl shadow-2xl border border-indigo-100 dark:border-indigo-900/40 overflow-hidden" x-data="{
              slides: [
-               { type: 'image', src: '{{ url_for('static', filename='images/mgmcen_banner.png') }}', caption: 'MGM College of Engineering — Nanded Campus' },
-               { type: 'image', src: '{{ url_for('static', filename='images/college-banner.png') }}', caption: 'Main College Building — A Legacy of Excellence' }
+               { type: 'image', src: '{{ url_for('static', filename='videos/YTDown_YouTube_Mahatma-Gandhi-Mission-s-College-of-Engi_Media_4oOWhogT4qc_002_720p.mp4') }}', caption: 'MGM College of Engineering — Nanded Campus' },
+               { type: 'image', src: '{{ url_for('static', filename='videos/college-banner.png') }}', caption: 'Main College Building — A Legacy of Excellence' }
              ],
              activeIdx: 0,
              autoplay: true,
@@ -175,49 +189,41 @@
              },
              prev() { this.activeIdx = (this.activeIdx - 1 + this.slides.length) % this.slides.length; },
              next() { this.activeIdx = (this.activeIdx + 1) % this.slides.length; }
-           }"
-           x-init="startAutoplay()">
+           }" x-init="startAutoplay()">
 
         <!-- Slide container -->
         <div class="relative h-72 sm:h-96 lg:h-[480px] bg-gray-900 overflow-hidden">
           <template x-for="(slide, idx) in slides" :key="idx">
-            <div x-show="activeIdx === idx"
-                 x-transition:enter="transition ease-in-out duration-700"
-                 x-transition:enter-start="opacity-0 scale-105"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in-out duration-500"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95"
-                 class="absolute inset-0">
+            <div x-show="activeIdx === idx" x-transition:enter="transition ease-in-out duration-700"
+              x-transition:enter-start="opacity-0 scale-105" x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in-out duration-500" x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-95" class="absolute inset-0">
               <!-- Image slide -->
               <template x-if="slide.type === 'image'">
-                <img :src="slide.src" :alt="slide.caption"
-                     class="w-full h-full object-cover object-center" loading="lazy">
+                <img :src="slide.src" :alt="slide.caption" class="w-full h-full object-cover object-center"
+                  loading="lazy">
               </template>
               <!-- Video slide -->
               <template x-if="slide.type === 'video'">
                 <video :src="slide.src" class="w-full h-full object-cover" autoplay muted loop playsinline></video>
               </template>
               <!-- Caption overlay -->
-              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-6 py-5">
+              <div
+                class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-6 py-5">
                 <p class="text-white font-semibold text-sm sm:text-base drop-shadow" x-text="slide.caption"></p>
               </div>
             </div>
           </template>
 
           <!-- Prev / Next arrows -->
-          <button @click="prev(); autoplay=false"
-                  class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
+          <button @click="prev(); autoplay=false" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
                          bg-black/40 hover:bg-black/70 text-white flex items-center justify-center
-                         transition-all duration-200 hover:scale-110 focus:outline-none z-10"
-                  aria-label="Previous">
+                         transition-all duration-200 hover:scale-110 focus:outline-none z-10" aria-label="Previous">
             <i class="fas fa-chevron-left"></i>
           </button>
-          <button @click="next(); autoplay=false"
-                  class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
+          <button @click="next(); autoplay=false" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
                          bg-black/40 hover:bg-black/70 text-white flex items-center justify-center
-                         transition-all duration-200 hover:scale-110 focus:outline-none z-10"
-                  aria-label="Next">
+                         transition-all duration-200 hover:scale-110 focus:outline-none z-10" aria-label="Next">
             <i class="fas fa-chevron-right"></i>
           </button>
 
@@ -225,9 +231,9 @@
           <div class="absolute bottom-4 right-6 flex gap-2 z-10">
             <template x-for="(slide, idx) in slides" :key="idx">
               <button @click="activeIdx = idx; autoplay=false"
-                      :class="activeIdx === idx ? 'bg-white w-6' : 'bg-white/50 w-2'"
-                      class="h-2 rounded-full transition-all duration-300 focus:outline-none"
-                      :aria-label="'Go to slide ' + (idx+1)"></button>
+                :class="activeIdx === idx ? 'bg-white w-6' : 'bg-white/50 w-2'"
+                class="h-2 rounded-full transition-all duration-300 focus:outline-none"
+                :aria-label="'Go to slide ' + (idx+1)"></button>
             </template>
           </div>
         </div>
@@ -241,13 +247,14 @@
             <div>
               <p class="font-semibold text-gray-900 dark:text-white text-sm" x-text="slides[activeIdx].caption"></p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                <span x-text="activeIdx + 1"></span> / <span x-text="slides.length"></span> &nbsp;·&nbsp; MGM College of Engineering
+                <span x-text="activeIdx + 1"></span> / <span x-text="slides.length"></span> &nbsp;·&nbsp; MGM College of
+                Engineering
               </p>
             </div>
           </div>
           <button @click="autoplay = !autoplay"
-                  :class="autoplay ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'"
-                  class="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full transition-all">
+            :class="autoplay ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'"
+            class="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full transition-all">
             <i :class="autoplay ? 'fa-pause' : 'fa-play'" class="fas text-xs"></i>
             <span x-text="autoplay ? 'Pause' : 'Play'"></span>
           </button>
@@ -271,11 +278,13 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for alumni in featured_alumni %}
-        <div class="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center">
-          <div class="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden ring-4 ring-indigo-100 dark:ring-indigo-900/50 group-hover:ring-indigo-300 transition-all">
+        <div
+          class="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center">
+          <div
+            class="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden ring-4 ring-indigo-100 dark:ring-indigo-900/50 group-hover:ring-indigo-300 transition-all">
             {% if alumni.get('profile_image') and alumni.profile_image != 'default.png' %}
-            <img src="{{ url_for('static', filename='uploads/' + alumni.profile_image) }}"
-                 alt="{{ alumni.name }}" class="w-full h-full object-cover">
+            <img src="{{ url_for('static', filename='uploads/' + alumni.profile_image) }}" alt="{{ alumni.name }}"
+              class="w-full h-full object-cover">
             {% else %}
             <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
               <span class="text-white font-bold text-2xl">{{ alumni.name[0] | upper }}</span>
@@ -286,10 +295,11 @@
           <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium mb-2">
             {{ alumni.get('current_working_company', alumni.get('company', 'MGM Alumni')) | truncate(40) }}
           </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Batch of {{ alumni.get('class_batch', alumni.get('graduation_year', '—')) }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Batch of {{ alumni.get('class_batch',
+            alumni.get('graduation_year', '—')) }}</p>
           {% if current_user.is_authenticated %}
           <a href="{{ url_for('alumni.view_profile', user_id=alumni._id | string) }}"
-             class="mt-4 inline-block text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+            class="mt-4 inline-block text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
             View Profile →
           </a>
           {% endif %}
@@ -299,13 +309,13 @@
       <div class="text-center mt-10">
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('alumni.directory') }}" id="view-all-alumni-btn"
-           class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-1">
+          class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-1">
           <i class="fas fa-users"></i>
           View All Alumni
         </a>
         {% else %}
         <a href="{{ url_for('auth.login') }}" id="login-to-view-btn"
-           class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-1">
+          class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-1">
           <i class="fas fa-sign-in-alt"></i>
           Log in to View All Alumni
         </a>
@@ -321,9 +331,10 @@
   {% if not current_user.is_authenticated %}
   <section class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 py-16 px-4 text-center">
     <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-4">Ready to join the community?</h2>
-    <p class="text-indigo-200 mb-8 max-w-xl mx-auto">Registration takes less than 2 minutes. Connect with fellow MGM graduates today.</p>
+    <p class="text-indigo-200 mb-8 max-w-xl mx-auto">Registration takes less than 2 minutes. Connect with fellow MGM
+      graduates today.</p>
     <a href="{{ url_for('auth.register') }}" id="cta-register-btn"
-       class="inline-flex items-center gap-2 bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-10 py-4 rounded-full shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105">
+      class="inline-flex items-center gap-2 bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-10 py-4 rounded-full shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105">
       <i class="fas fa-user-plus"></i>
       Create Your Free Account
     </a>

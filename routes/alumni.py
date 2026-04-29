@@ -14,68 +14,80 @@ alumni_bp = Blueprint('alumni', __name__)
 @alumni_bp.route('/alumni')
 @login_required
 def directory():
-    # Will hook into Alpine.js / API for live search, but server render initial set
+    # Server-render initial set — Alpine.js takes over for live search/filter
     alumni_members = list(mongo.db.users.find({'role': 'alumni', 'is_approved': True}).limit(50))
-    
+
+    # Collect distinct graduation years for the filter dropdown
+    years = sorted(set(
+        str(m.get('graduation_year', '') or m.get('class_batch', ''))
+        for m in mongo.db.users.find({'role': 'alumni', 'is_approved': True}, {'graduation_year': 1, 'class_batch': 1})
+        if m.get('graduation_year') or m.get('class_batch')
+    ), reverse=True)
+
     for member in alumni_members:
         member['_id'] = str(member['_id'])
         if member.get('created_at'):
             member['created_at'] = member['created_at'].isoformat()
-            
         skills = member.get('skills')
         if not skills:
             member['skills'] = []
         elif isinstance(skills, str):
             member['skills'] = [s.strip() for s in skills.split(',') if s.strip()]
-        
-        # Ensure new fields exist
         member.setdefault('current_working_company', member.get('company', ''))
-        member.setdefault('class_batch', '')
+        member.setdefault('class_batch', str(member.get('graduation_year', '')))
         member.setdefault('past_experience', [])
         member.setdefault('education', [])
         member.setdefault('certificates', [])
-            
-    return render_template('alumni-directory.html', alumni=alumni_members)
+
+    return render_template('alumni-directory.html', alumni=alumni_members, years=years)
 
 @alumni_bp.route('/api/alumni/search')
 @login_required
 def search_api():
-    query = request.args.get('q', '')
-    dept = request.args.get('dept', '')
-    
+    query  = request.args.get('q', '')
+    dept   = request.args.get('dept', '')
+    year   = request.args.get('year', '')   # NEW: passing/graduation year filter
+
     match = {'role': 'alumni', 'is_approved': True}
     if query:
         match['$or'] = [
-            {'name': {'$regex': query, '$options': 'i'}},
-            {'company': {'$regex': query, '$options': 'i'}},
+            {'name':                    {'$regex': query, '$options': 'i'}},
+            {'company':                 {'$regex': query, '$options': 'i'}},
             {'current_working_company': {'$regex': query, '$options': 'i'}},
-            {'skills': {'$regex': query, '$options': 'i'}}
+            {'skills':                  {'$regex': query, '$options': 'i'}},
         ]
     if dept:
         match['department'] = {'$regex': dept, '$options': 'i'}
-        
-    skip = int(request.args.get('skip', 0))
+    if year:
+        # Match either graduation_year (int or str) or class_batch
+        try:
+            yr_int = int(year)
+            match['$or'] = match.get('$or', []) + [
+                {'graduation_year': yr_int},
+                {'graduation_year': str(yr_int)},
+                {'class_batch':     str(yr_int)},
+            ]
+        except ValueError:
+            match['class_batch'] = {'$regex': year, '$options': 'i'}
+
+    skip  = int(request.args.get('skip',  0))
     limit = int(request.args.get('limit', 12))
-        
+
     results = list(mongo.db.users.find(match, {'password': 0}).skip(skip).limit(limit))
-    # Convert ObjectIds to strings for JSON
     for r in results:
-        r['_id'] = str(r['_id'])
+        r['_id']        = str(r['_id'])
         r['created_at'] = r['created_at'].isoformat() if r.get('created_at') else None
-        
         skills = r.get('skills')
         if not skills:
             r['skills'] = []
         elif isinstance(skills, str):
             r['skills'] = [s.strip() for s in skills.split(',') if s.strip()]
-        
-        # Ensure new fields are present with defaults
         r.setdefault('current_working_company', r.get('company', ''))
-        r.setdefault('class_batch', '')
+        r.setdefault('class_batch', str(r.get('graduation_year', '')))
         r.setdefault('past_experience', [])
         r.setdefault('education', [])
         r.setdefault('certificates', [])
-    
+
     return jsonify(results)
 
 @alumni_bp.route('/profile', methods=['GET'])

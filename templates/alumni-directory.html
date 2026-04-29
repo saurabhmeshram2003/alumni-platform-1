@@ -32,13 +32,27 @@
                     <option value="Mechanical">Mechanical</option>
                     <option value="IT">IT</option>
                     <option value="ENTC">ENTC</option>
+                    <option value="AI DS">AI DS</option>
+                </select>
+            </div>
 
+            <!-- Passing Year Filter -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-calendar-alt mr-1 text-indigo-400"></i> Passing Year
+                </label>
+                <select x-model="year" @change="fetchAlumni(false)"
+                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-lg border transition-colors">
+                    <option value="">All Years</option>
+                    {% for yr in years %}
+                    <option value="{{ yr }}">{{ yr }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
             <button @click="resetFilters"
                 class="w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
-                Clear Filters
+                <i class="fas fa-times mr-1"></i> Clear Filters
             </button>
         </div>
     </div>
@@ -230,46 +244,33 @@
             loading: false,
             searchQuery: '',
             department: '',
+            year: '',           // NEW: graduation/passing year
             alumni: [],
             hasMore: true,
 
             init() {
-                // Initialize with SSR data to prevent flicker, then enable JS mode
-                try {
-                    let initialDataStr = '{{ alumni|tojson|safe }}';
-                    // Need to parse ObjectID correctly, standard tojson might fail. 
-                    // To be safe, we'll just fetch immediately.
-                    this.fetchAlumni(false);
-                    this.jsLoaded = true;
-                } catch (e) {
-                    this.fetchAlumni(false);
-                    this.jsLoaded = true;
-                }
+                this.fetchAlumni(false);
+                this.jsLoaded = true;
             },
 
             async fetchAlumni(append = false) {
                 if (append instanceof Event) append = false;
                 if (this.loading) return;
                 this.loading = true;
-                if (!append) {
-                    this.hasMore = true;
-                }
+                if (!append) this.hasMore = true;
                 try {
                     const response = await axios.get('/api/alumni/search', {
                         params: {
-                            q: this.searchQuery,
+                            q:    this.searchQuery,
                             dept: this.department,
+                            year: this.year,        // NEW param
                             skip: append ? this.alumni.length : 0,
                             limit: 12
                         }
                     });
-
-                    if (append) {
-                        this.alumni = [...this.alumni, ...response.data];
-                    } else {
-                        this.alumni = response.data;
-                    }
-
+                    this.alumni = append
+                        ? [...this.alumni, ...response.data]
+                        : response.data;
                     this.hasMore = response.data.length === 12;
                 } catch (error) {
                     console.error('Error fetching alumni:', error);
@@ -280,7 +281,8 @@
 
             resetFilters() {
                 this.searchQuery = '';
-                this.department = '';
+                this.department  = '';
+                this.year        = '';
                 this.fetchAlumni();
             }
         }))

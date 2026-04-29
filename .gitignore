@@ -28,11 +28,10 @@ alumni_credentials.txt
 mongo-restartr.txt
 
 # ── Uploads & media ─────────────────────────────────────────────────
-static/uploads/
+# Allow profile images & static images to deploy to Render
+# Only exclude large generated/user-uploaded content:
+static/uploads/stories/
 alumni_photos/
-*.png
-*.jpg
-*.jpeg
 *.gif
 *.pdf
 *.webp

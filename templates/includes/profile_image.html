@@ -1,0 +1,26 @@
+{# ─────────────────────────────────────────────────────────────────────────
+   Reusable profile image macro
+   Usage:
+     {% from 'includes/profile_image.html' import profile_img_src, profile_img %}
+     {{ profile_img_src(person.profile_image, person.name) }}
+     {{ profile_img(person.profile_image, person.name, css="w-12 h-12 rounded-full") }}
+   ───────────────────────────────────────────────────────────────────────── #}
+
+{# Returns just the src URL #}
+{% macro profile_img_src(profile_image, name, bg='1E3A8A') %}
+{%- if profile_image and profile_image not in ('default.png', 'None', '') -%}
+{{ url_for('static', filename='uploads/' ~ profile_image) }}
+{%- else -%}
+https://ui-avatars.com/api/?name={{ name | urlencode }}&background={{ bg }}&color=fff&bold=true
+{%- endif -%}
+{% endmacro %}
+
+{# Returns a full <img> tag with onerror fallback #}
+{% macro profile_img(profile_image, name, css='', bg='1E3A8A', alt=None) %}
+{%- set src = profile_img_src(profile_image, name, bg) -%}
+{%- set fallback = 'https://ui-avatars.com/api/?name=' ~ (name | urlencode) ~ '&background=' ~ bg ~ '&color=fff&bold=true' -%}
+<img src="{{ src }}"
+     alt="{{ alt if alt else name }}"
+     class="{{ css }}"
+     onerror="this.onerror=null;this.src='{{ fallback }}'">
+{% endmacro %}

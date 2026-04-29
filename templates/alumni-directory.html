@@ -73,8 +73,10 @@
                 <div class="p-5 flex-grow pr-5 sm:pr-32 flex flex-col justify-between">
                     <div>
                         <div class="flex sm:hidden justify-center mb-4">
-                            <img src="{{ url_for('static', filename='uploads/' ~ person.profile_image) if person.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ person.name|urlencode ~ '&background=1E3A8A&color=fff' }}"
-                                class="w-20 h-20 rounded-full border-4 border-white dark:border-darkCard object-cover shadow-sm bg-white">
+                            {% set _fb = 'https://ui-avatars.com/api/?name=' ~ person.name|urlencode ~ '&background=1E3A8A&color=fff&bold=true' %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ person.profile_image) if (person.profile_image and person.profile_image not in ('default.png','None','')) else _fb }}"
+                                 onerror="this.onerror=null;this.src='{{ _fb }}'"
+                                 class="w-20 h-20 rounded-full border-4 border-white dark:border-darkCard object-cover shadow-sm bg-white">
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">{{ person.name }}</h3>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -132,8 +134,10 @@
                 <!-- Larger image positioned horizontally on the right for md & up -->
                 <div
                     class="absolute right-5 top-1/2 transform -translate-y-1/2 w-24 h-24 hidden sm:block pointer-events-none">
-                    <img src="{{ url_for('static', filename='uploads/' ~ person.profile_image) if person.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ person.name|urlencode ~ '&background=1E3A8A&color=fff' }}"
-                        class="w-full h-full rounded-full border-4 border-white dark:border-darkCard object-cover shadow-lg bg-white point-events-auto cursor-pointer">
+                    {% set _fb2 = 'https://ui-avatars.com/api/?name=' ~ person.name|urlencode ~ '&background=1E3A8A&color=fff&bold=true' %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ person.profile_image) if (person.profile_image and person.profile_image not in ('default.png','None','')) else _fb2 }}"
+                         onerror="this.onerror=null;this.src='{{ _fb2 }}'"
+                         class="w-full h-full rounded-full border-4 border-white dark:border-darkCard object-cover shadow-lg bg-white cursor-pointer">
                 </div>
             </div>
             {% else %}
@@ -152,8 +156,9 @@
                     <div class="p-5 flex-grow pr-5 sm:pr-32 flex flex-col justify-between">
                         <div>
                             <div class="flex sm:hidden justify-center mb-4">
-                                <img :src="person.profile_image !== 'default.png' ? '/static/uploads/' + person.profile_image : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(person.name) + '&background=1E3A8A&color=fff'"
-                                    class="w-20 h-20 rounded-full border-4 border-white dark:border-darkCard object-cover shadow-sm bg-white">
+                                <img :src="(person.profile_image && person.profile_image !== 'default.png' && person.profile_image !== 'None' && person.profile_image !== '') ? '/static/uploads/' + person.profile_image : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(person.name) + '&background=1E3A8A&color=fff&bold=true'"
+                                     @error="$el.src='https://ui-avatars.com/api/?name='+encodeURIComponent(person.name)+'&background=1E3A8A&color=fff&bold=true'"
+                                     class="w-20 h-20 rounded-full border-4 border-white dark:border-darkCard object-cover shadow-sm bg-white">
                             </div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1" x-text="person.name"></h3>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-2"
@@ -209,8 +214,9 @@
                     <!-- Larger image positioned horizontally on the right for md & up -->
                     <div
                         class="absolute right-5 top-1/2 transform -translate-y-1/2 w-24 h-24 hidden sm:block pointer-events-none">
-                        <img :src="person.profile_image !== 'default.png' ? '/static/uploads/' + person.profile_image : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(person.name) + '&background=1E3A8A&color=fff'"
-                            class="w-full h-full rounded-full border-4 border-white dark:border-darkCard object-cover shadow-lg bg-white point-events-auto cursor-pointer">
+                        <img :src="(person.profile_image && person.profile_image !== 'default.png' && person.profile_image !== 'None' && person.profile_image !== '') ? '/static/uploads/' + person.profile_image : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(person.name) + '&background=1E3A8A&color=fff&bold=true'"
+                             @error="$el.src='https://ui-avatars.com/api/?name='+encodeURIComponent(person.name)+'&background=1E3A8A&color=fff&bold=true'"
+                             class="w-full h-full rounded-full border-4 border-white dark:border-darkCard object-cover shadow-lg bg-white cursor-pointer">
                     </div>
                 </div>
             </template>

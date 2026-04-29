@@ -131,7 +131,9 @@
           <a href="{{ url_for('alumni.profile') }}"
              class="flex items-center gap-2 ml-2 text-sm font-semibold text-gray-700 dark:text-gray-200
                     hover:text-primary dark:hover:text-secondary transition-colors">
-            <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) if current_user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ current_user.name|urlencode ~ '&background=4F46E5&color=fff' }}"
+            {% set _nb = 'https://ui-avatars.com/api/?name=' ~ current_user.name|urlencode ~ '&background=4F46E5&color=fff&bold=true' %}
+            <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) if (current_user.profile_image and current_user.profile_image not in ('default.png','None','')) else _nb }}"
+                 onerror="this.onerror=null;this.src='{{ _nb }}'"
                  class="w-8 h-8 rounded-full object-cover border-2 border-primary/20">
           </a>
           <a href="{{ url_for('auth.logout') }}"

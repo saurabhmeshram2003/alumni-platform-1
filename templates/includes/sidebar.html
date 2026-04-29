@@ -1,7 +1,9 @@
 <div class="bg-white dark:bg-darkCard rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 p-4 sticky top-24">
     <div class="mb-6 flex items-center gap-3">
-        <img class="h-12 w-12 rounded-full object-cover border-2 border-primary" 
-             src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) if current_user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ current_user.name|urlencode ~ '&background=1E3A8A&color=fff' }}" 
+        {% set _sb = 'https://ui-avatars.com/api/?name=' ~ current_user.name|urlencode ~ '&background=1E3A8A&color=fff&bold=true' %}
+        <img class="h-12 w-12 rounded-full object-cover border-2 border-primary"
+             src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) if (current_user.profile_image and current_user.profile_image not in ('default.png','None','')) else _sb }}"
+             onerror="this.onerror=null;this.src='{{ _sb }}'"
              alt="{{ current_user.name }}">
         <div>
             <h3 class="font-bold text-gray-900 dark:text-white">{{ current_user.name }}</h3>

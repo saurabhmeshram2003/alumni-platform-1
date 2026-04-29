@@ -42,32 +42,28 @@ def create_app():
     app.register_blueprint(stories_bp)
     app.register_blueprint(notifications_bp)
 
-    # ── LAUNCH MODE GATE ──────────────────────────────────────────────
-    # LAUNCH_MODE=0  →  Pre-launch: only /register + /coming-soon accessible.
-    #                    All other routes redirect to /coming-soon.
-    # LAUNCH_MODE=1  →  Full platform: every route is open normally.
-    # Toggle in Railway/Render env vars — no code change needed.
-    LAUNCH_MODE = os.getenv('LAUNCH_MODE', '1').strip() == '1'
 
     # Endpoints always accessible regardless of launch mode
     _PRE_LAUNCH_ALLOWED = {
-        'main.index',         # landing page
-        'main.coming_soon',   # coming soon page
-        'auth.register',      # registration form
-        'auth.verify_otp',    # OTP verification
-        'auth.resend_otp',    # resend OTP
-        'static',             # CSS / JS / images
+        'main.index',
+        'main.coming_soon',
+        'auth.register',
+        'auth.login',
+        'auth.verify_otp',
+        'auth.resend_otp',
+        'static',
     }
 
     @app.before_request
     def launch_mode_gate():
-        """Pre-launch guard: only registration flow is accessible."""
-        if LAUNCH_MODE:
-            return  # Platform is live – full access
+        """Pre-launch guard — read env var per-request so Render changes apply instantly."""
+        # Default to '1' (full access) — must explicitly set LAUNCH_MODE=0 to restrict
+        launch_mode = os.getenv('LAUNCH_MODE', '1').strip() == '1'
+        if launch_mode:
+            return  # Platform is live — full access, no gate
         endpoint = request.endpoint or ''
         if any(endpoint == ep or endpoint.startswith('static') for ep in _PRE_LAUNCH_ALLOWED):
-            return  # Allowed through
-        # Everything else → graceful redirect to coming-soon
+            return  # Allowed through pre-launch gate
         return redirect(url_for('main.coming_soon'))
 
     @app.after_request

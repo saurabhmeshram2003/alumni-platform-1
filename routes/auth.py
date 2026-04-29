@@ -303,14 +303,8 @@ def verify_otp():
         PendingUser.promote_to_users(email)
         session.pop('otp_email', None)
 
-        # Full launch: send to login. Pre-launch: send to coming-soon page.
-        LAUNCH_MODE = os.getenv('LAUNCH_MODE', '1').strip() == '1'
-        if LAUNCH_MODE:
-            flash('🎉 Email verified successfully! You can now log in.', 'success')
-            return redirect(url_for('auth.login'))
-
-        flash('🎉 Registration complete! We\'ll notify you when the platform goes live.', 'success')
-        return redirect(url_for('main.coming_soon'))
+        flash('🎉 Email verified! You can now log in.', 'success')
+        return redirect(url_for('auth.login'))
 
     return render_template('verify_otp.html', email=email)
 

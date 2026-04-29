@@ -12,7 +12,20 @@
     <!-- Story Header -->
     <div class="bg-white dark:bg-darkCard rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden mb-6">
 
-        {% if story.media_url %}
+        {# ── Uploaded file takes priority over URL ── #}
+        {% if story.get('media_file') %}
+        <div class="h-72 overflow-hidden bg-black">
+            {% if story.get('media_type') == 'video' %}
+            <video src="{{ url_for('static', filename='uploads/stories/' + story.media_file) }}"
+                   controls class="w-full h-full object-contain"
+                   preload="metadata"></video>
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/stories/' + story.media_file) }}"
+                 alt="{{ story.title }}" class="w-full h-full object-cover"
+                 onerror="this.parentElement.style.display='none'">
+            {% endif %}
+        </div>
+        {% elif story.get('media_url') %}
         <div class="h-72 overflow-hidden">
             <img src="{{ story.media_url }}" alt="{{ story.title }}"
                  class="w-full h-full object-cover"

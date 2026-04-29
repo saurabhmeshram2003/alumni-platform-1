@@ -174,22 +174,39 @@
 
       <!-- Gallery Carousel Card -->
       <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900
-                  rounded-3xl shadow-2xl border border-indigo-100 dark:border-indigo-900/40 overflow-hidden" x-data="{
+                  rounded-3xl shadow-2xl border border-indigo-100 dark:border-indigo-900/40 overflow-hidden"
+           x-data="{
              slides: [
-               { type: 'image', src: '{{ url_for('static', filename='videos/YTDown_YouTube_Mahatma-Gandhi-Mission-s-College-of-Engi_Media_4oOWhogT4qc_002_720p.mp4') }}', caption: 'MGM College of Engineering — Nanded Campus' },
-               { type: 'image', src: '{{ url_for('static', filename='videos/college-banner.png') }}', caption: 'Main College Building — A Legacy of Excellence' }
+               {
+                 type: 'video',
+                 src: '{{ url_for('static', filename='videos/YTDown_YouTube_Mahatma-Gandhi-Mission-s-College-of-Engi_Media_4oOWhogT4qc_002_720p.mp4') }}',
+                 caption: 'MGM College of Engineering — Nanded Campus Tour'
+               },
+               {
+                 type: 'image',
+                 src: '{{ url_for('static', filename='images/mgmcen_banner.png') }}',
+                 caption: 'MGM College of Engineering — Nanded Campus'
+               },
+               {
+                 type: 'image',
+                 src: '{{ url_for('static', filename='images/college-banner.png') }}',
+                 caption: 'Main College Building — A Legacy of Excellence'
+               }
              ],
              activeIdx: 0,
              autoplay: true,
              interval: null,
              startAutoplay() {
                this.interval = setInterval(() => {
-                 if (this.autoplay) this.activeIdx = (this.activeIdx + 1) % this.slides.length;
-               }, 4000);
+                 if (this.autoplay && this.slides[this.activeIdx].type !== 'video') {
+                   this.activeIdx = (this.activeIdx + 1) % this.slides.length;
+                 }
+               }, 5000);
              },
              prev() { this.activeIdx = (this.activeIdx - 1 + this.slides.length) % this.slides.length; },
              next() { this.activeIdx = (this.activeIdx + 1) % this.slides.length; }
-           }" x-init="startAutoplay()">
+           }"
+           x-init="startAutoplay()">
 
         <!-- Slide container -->
         <div class="relative h-72 sm:h-96 lg:h-[480px] bg-gray-900 overflow-hidden">
@@ -242,13 +259,14 @@
         <div class="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="flex items-center gap-3">
             <span class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-              <i class="fas fa-images text-indigo-600 dark:text-indigo-400 text-sm"></i>
+              <i :class="slides[activeIdx].type === 'video' ? 'fa-play-circle' : 'fa-images'"
+                 class="fas text-indigo-600 dark:text-indigo-400 text-sm"></i>
             </span>
             <div>
               <p class="font-semibold text-gray-900 dark:text-white text-sm" x-text="slides[activeIdx].caption"></p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                <span x-text="activeIdx + 1"></span> / <span x-text="slides.length"></span> &nbsp;·&nbsp; MGM College of
-                Engineering
+                <span x-text="activeIdx + 1"></span> / <span x-text="slides.length"></span>
+                &nbsp;·&nbsp; MGM College of Engineering
               </p>
             </div>
           </div>

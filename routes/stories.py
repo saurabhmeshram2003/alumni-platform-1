@@ -80,32 +80,63 @@ def submit():
         return redirect(url_for('stories.index'))
 
     if request.method == 'POST':
-        title   = request.form.get('title', '').strip()
-        content = request.form.get('content', '').strip()
-        tags    = request.form.get('tags', '').strip()
+        title     = request.form.get('title', '').strip()
+        content   = request.form.get('content', '').strip()
+        tags      = request.form.get('tags', '').strip()
         media_url = request.form.get('media_url', '').strip()
 
         if not title or not content:
             flash('Title and story content are required.', 'danger')
             return redirect(url_for('stories.submit'))
 
+        # ── Handle file upload (photo or video) ─────────────────────────
+        media_file = None
+        media_type = None
+
+        uploaded = request.files.get('media_file')
+        if uploaded and uploaded.filename:
+            from werkzeug.utils import secure_filename
+            import os, time
+            from flask import current_app
+
+            ALLOWED_IMAGES = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
+            ALLOWED_VIDEOS = {'mp4', 'mov', 'avi', 'webm', 'mkv'}
+
+            ext = uploaded.filename.rsplit('.', 1)[-1].lower()
+            if ext in ALLOWED_IMAGES:
+                media_type = 'image'
+            elif ext in ALLOWED_VIDEOS:
+                media_type = 'video'
+            else:
+                flash('Unsupported file type. Use JPG/PNG/GIF for photos or MP4/MOV/WEBM for videos.', 'danger')
+                return redirect(url_for('stories.submit'))
+
+            stories_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'stories')
+            os.makedirs(stories_dir, exist_ok=True)
+
+            safe_name  = secure_filename(uploaded.filename)
+            media_file = f"story_{int(time.time())}_{safe_name}"
+            uploaded.save(os.path.join(stories_dir, media_file))
+
         doc = {
-            'author_id':   ObjectId(current_user.id),
-            'author_name': current_user.name,
-            'author_role': current_user.role,
-            'author_dept': current_user.department,
+            'author_id':    ObjectId(current_user.id),
+            'author_name':  current_user.name,
+            'author_role':  current_user.role,
+            'author_dept':  current_user.department,
             'author_company': current_user.company or '',
             'author_image': current_user.profile_image,
-            'title':       title,
-            'content':     content,
-            'tags':        [t.strip() for t in tags.split(',') if t.strip()],
-            'media_url':   media_url,
-            'approved':    False,
-            'rejected':    False,
-            'views':       0,
-            'likes':       0,
-            'liked_by':    [],
-            'created_at':  datetime.utcnow(),
+            'title':        title,
+            'content':      content,
+            'tags':         [t.strip() for t in tags.split(',') if t.strip()],
+            'media_url':    media_url,
+            'media_file':   media_file,   # uploaded file path (relative to static/uploads/stories/)
+            'media_type':   media_type,   # 'image' | 'video' | None
+            'approved':     False,
+            'rejected':     False,
+            'views':        0,
+            'likes':        0,
+            'liked_by':     [],
+            'created_at':   datetime.utcnow(),
         }
         mongo.db.success_stories.insert_one(doc)
         flash('Your story has been submitted for review! It will appear once approved.', 'success')

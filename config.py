@@ -1,12 +1,9 @@
 import os
 import secrets
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', secrets.token_hex(16))
-    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/alumni_db')
+    MONGO_URI = os.environ.get('MONGO_URI')  # Must be set via Railway env vars
     
     # Mail settings
     MAIL_SERVER         = os.getenv('MAIL_SERVER', 'smtp.gmail.com')

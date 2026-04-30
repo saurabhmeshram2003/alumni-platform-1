@@ -72,31 +72,45 @@ def create_app():
         if app.debug:
             response.headers['X-Frame-Options'] = '*'
         return response
-    with app.app_context():
-        # Ensure default admin exists
-        # Use env vars; fall back to legacy defaults only if not set
-        admin_email    = os.getenv('ADMIN_EMAIL', 'admin@123')
-        admin_password = os.getenv('ADMIN_PASSWORD', 'Saurabh@123')
-        admin_existing = mongo.db.users.find_one({'email': admin_email})
-        
-        if not admin_existing:
-            from werkzeug.security import generate_password_hash
-            from datetime import datetime
-            mongo.db.users.insert_one({
-                'name': 'System Admin',
-                'email': admin_email,
-                'password': generate_password_hash(admin_password),
-                'role': 'admin',
-                'graduation_year': None,
-                'department': 'Administration',
-                'company': None,
-                'skills': [],
-                'linkedin': None,
-                'profile_image': 'default.png',
-                'created_at': datetime.utcnow(),
-                'is_approved': True,
-                'verified': True,
-            })
+
+    # ── Admin seeding (first-request, non-blocking) ──────────────────────────
+    # NOTE: @app.before_first_request was removed in Flask 2.3.
+    # We use a nonlocal flag instead — safe and equivalent.
+    _admin_seeded = False
+
+    @app.before_request
+    def ensure_default_admin():
+        """Seed the default admin user once on first request.
+        Wrapped in try/except so a DB hiccup never crashes the app.
+        """
+        nonlocal _admin_seeded
+        if _admin_seeded:
+            return
+        _admin_seeded = True
+        try:
+            admin_email    = os.getenv('ADMIN_EMAIL', 'admin@123')
+            admin_password = os.getenv('ADMIN_PASSWORD', 'Saurabh@123')
+            if not mongo.db.users.find_one({'email': admin_email}):
+                from werkzeug.security import generate_password_hash
+                from datetime import datetime
+                mongo.db.users.insert_one({
+                    'name': 'System Admin',
+                    'email': admin_email,
+                    'password': generate_password_hash(admin_password),
+                    'role': 'admin',
+                    'graduation_year': None,
+                    'department': 'Administration',
+                    'company': None,
+                    'skills': [],
+                    'linkedin': None,
+                    'profile_image': 'default.png',
+                    'created_at': datetime.utcnow(),
+                    'is_approved': True,
+                    'verified': True,
+                })
+                app.logger.info("[Admin seed] Default admin created.")
+        except Exception as e:
+            app.logger.error(f"[Admin seed] Failed to seed default admin: {e}")
 
     return app
 

@@ -2,11 +2,13 @@
 utils/otp.py
 ------------
 OTP generation and Gmail SMTP email sending for the Alumni Platform.
-Production-ready — no dev fallbacks.
+Production-ready — sends email in a background thread to prevent
+HTTP 502 timeouts caused by slow SMTP connections on Render.
 """
 
 import random
 import string
+import threading
 from datetime import datetime, timedelta
 
 from flask import current_app
@@ -24,19 +26,37 @@ def get_otp_expiry(minutes: int = 5) -> datetime:
     return datetime.utcnow() + timedelta(minutes=minutes)
 
 
+def _send_in_background(app, msg):
+    """Send a Flask-Mail message inside a background thread with app context."""
+    with app.app_context():
+        try:
+            mail.send(msg)
+            app.logger.info(f"[Email] OTP sent to {msg.recipients}")
+        except Exception as e:
+            app.logger.error(f"[Email] Background send failed: {e}")
+
+
 def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "User") -> bool:
     """
     Send OTP via Gmail SMTP using Flask-Mail.
-    Returns True if sent successfully, False otherwise.
+    Email is dispatched in a background thread so the HTTP request
+    returns immediately — prevents HTTP 502 on Render.
+    Returns True if the email was queued successfully, False if config is missing.
     """
     try:
+        app = current_app._get_current_object()
+
         sender = (
-            current_app.config.get('MAIL_DEFAULT_SENDER')
-            or current_app.config.get('MAIL_USERNAME')
+            app.config.get('MAIL_DEFAULT_SENDER')
+            or app.config.get('MAIL_USERNAME')
         )
 
         if not sender:
-            current_app.logger.warning("MAIL_USERNAME / MAIL_DEFAULT_SENDER is not set in environment.")
+            app.logger.warning("MAIL_USERNAME / MAIL_DEFAULT_SENDER is not set. Cannot send OTP.")
+            return False
+
+        if not app.config.get('MAIL_PASSWORD'):
+            app.logger.warning("MAIL_PASSWORD is not set. Cannot send OTP.")
             return False
 
         subject = "Alumni Platform – Email Verification OTP"
@@ -47,7 +67,8 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
             f"    {otp_code}\n\n"
             f"This OTP is valid for 5 minutes.\n"
             f"Do NOT share it with anyone.\n\n"
-            f"Regards,\nAlumni Platform Team\n"
+            f"If you didn't request this, please ignore this email.\n\n"
+            f"Regards,\nAlumni Platform Team — MGM College of Engineering\n"
         )
 
         html_body = f"""
@@ -55,11 +76,13 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
                     padding:32px;border:1px solid #E5E7EB;border-radius:12px;
                     background:#ffffff;">
             <h2 style="color:#4F46E5;margin-bottom:8px;">Alumni Platform</h2>
-            <p style="color:#6B7280;font-size:14px;margin-bottom:24px;">Email Verification</p>
+            <p style="color:#6B7280;font-size:14px;margin-bottom:24px;">
+                MGM College of Engineering — Email Verification
+            </p>
 
             <p style="color:#1F2937;margin-bottom:8px;">Hello <strong>{recipient_name}</strong>,</p>
             <p style="color:#1F2937;margin-bottom:24px;">
-                Use the OTP below to verify your email address.
+                Use the OTP below to verify your email address and complete registration.
             </p>
 
             <div style="background:#F0F0FF;border:1px solid #C7D2FE;border-radius:8px;
@@ -72,8 +95,11 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
             <p style="color:#6B7280;font-size:13px;margin-bottom:8px;">
                 ⏱ This OTP expires in <strong>5 minutes</strong>.
             </p>
-            <p style="color:#6B7280;font-size:13px;">
+            <p style="color:#6B7280;font-size:13px;margin-bottom:8px;">
                 🔒 Do <strong>NOT</strong> share this code with anyone.
+            </p>
+            <p style="color:#F59E0B;font-size:12px;margin-bottom:0;">
+                📬 Don't see this email? Check your <strong>Spam / Junk</strong> folder.
             </p>
 
             <hr style="border:none;border-top:1px solid #E5E7EB;margin:24px 0;">
@@ -90,8 +116,12 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
             body=body,
             html=html_body,
         )
-        mail.send(msg)
+
+        # Fire-and-forget in background thread — prevents request timeout / HTTP 502
+        t = threading.Thread(target=_send_in_background, args=(app, msg), daemon=True)
+        t.start()
         return True
+
     except Exception as e:
-        current_app.logger.error(f"Email failed: {e}")
+        current_app.logger.error(f"[Email] Failed to queue OTP email: {e}")
         return False

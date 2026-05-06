@@ -21,7 +21,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import User, PendingUser
 from utils.otp import generate_otp, get_otp_expiry, send_otp_email
-from extensions import limiter
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -88,7 +87,6 @@ def login():
 # REGISTER  →  saves to pending_users (NOT users)
 # ─────────────────────────────────────────────────────────────────
 @auth_bp.route('/register', methods=['GET', 'POST'])
-@limiter.limit("10 per minute", methods=["POST"])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
@@ -318,7 +316,6 @@ def verify_otp():
 # RESEND OTP  →  updates pending_users record
 # ─────────────────────────────────────────────────────────────────
 @auth_bp.route('/resend-otp', methods=['POST'])
-@limiter.limit("5 per minute")
 def resend_otp():
     email = (request.form.get('email', '') or session.get('otp_email', '')).strip()
 

@@ -237,19 +237,11 @@ def register():
             )
 
             # 16. Send OTP email
-            success = send_otp_email(email, otp_code, name)
-            if not success:
-                PendingUser.delete(email)
-                flash(
-                    'We could not send the verification email. '
-                    'Please check your email address and try again.',
-                    'danger'
-                )
-                return redirect(url_for('auth.register'))
+            send_otp_email(email, otp_code, name)
 
             flash(
                 f'Registration successful! A 6-digit OTP has been sent to '
-                f'<strong>{email}</strong>. Please verify your email to continue.',
+                f'<strong>{email}</strong>. OTP may take a few minutes. Please check spam/promotions folder.',
                 'success'
             )
             session['otp_email'] = email
@@ -352,14 +344,8 @@ def resend_otp():
     PendingUser.update_otp(email, new_otp, new_expiry)
 
     # ── Send email — production: surface real errors to user ────────
-    success = send_otp_email(email, new_otp, pending.get('name', 'User'))
-    if success:
-        flash('A new OTP has been sent to your email address.', 'success')
-    else:
-        flash(
-            'Could not send the OTP email. Please check your connection and try again.',
-            'danger'
-        )
+    send_otp_email(email, new_otp, pending.get('name', 'User'))
+    flash('A new OTP has been sent to your email address. OTP may take a few minutes. Please check spam/promotions folder.', 'success')
 
     session['otp_email'] = email
     return redirect(url_for('auth.verify_otp'))

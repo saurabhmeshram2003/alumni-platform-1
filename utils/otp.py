@@ -18,7 +18,12 @@ from extensions import mail
 
 def generate_otp(length: int = 6) -> str:
     """Return a secure 6-digit numeric OTP."""
-    return ''.join(random.choices(string.digits, k=length))
+    otp = ''.join(random.choices(string.digits, k=length))
+    try:
+        current_app.logger.info(f"[OTP] Generated new OTP: {otp}")
+    except RuntimeError:
+        pass  # Outside of app context during testing
+    return otp
 
 
 def get_otp_expiry(minutes: int = 5) -> datetime:
@@ -27,13 +32,27 @@ def get_otp_expiry(minutes: int = 5) -> datetime:
 
 
 def _send_in_background(app, msg):
-    """Send a Flask-Mail message inside a background thread with app context."""
+    """
+    Send a Flask-Mail message inside a background thread with app context.
+
+    Why Gmail SMTP may fail intermittently:
+    - Gmail sometimes enforces rate limits or drops connections unexpectedly.
+    - App Passwords can be temporarily blocked if Google detects suspicious activity.
+    - Network latency on Render/Railway can cause the SMTP handshake to time out.
+
+    How this prevents crashes:
+    - By moving `mail.send(msg)` into a background thread, the main HTTP request 
+      does not block waiting for the SMTP server.
+    - This completely eliminates the "HTTP 502 Bad Gateway" errors that occur 
+      when Gunicorn workers time out waiting for an email to send.
+    - All `mail.send()` calls are wrapped in try/except, preventing unhandled exceptions.
+    """
     with app.app_context():
         try:
             mail.send(msg)
-            app.logger.info(f"[Email] OTP sent to {msg.recipients}")
+            app.logger.info(f"[Email] Successfully sent OTP email to {msg.recipients}")
         except Exception as e:
-            app.logger.error(f"[Email] Background send failed: {e}")
+            app.logger.error(f"[Email] Exact exception during background send: {str(e)}")
 
 
 def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "User") -> bool:

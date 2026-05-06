@@ -9,9 +9,22 @@ def create_app():
     app.config.from_object(Config)
 
     # Initialize extensions
-    mongo.init_app(app)
+    try:
+        if app.config.get('MONGO_URI'):
+            mongo.init_app(app)
+            if mongo.cx:
+                mongo.cx.server_info()
+                app.logger.info("MongoDB initialized and connected successfully.")
+        else:
+            app.logger.error("MONGO_URI is NOT set in environment. Skipping MongoDB initialization.")
+    except Exception as e:
+        app.logger.error(f"MongoDB connection failed on startup: {e}")
+
     login_manager.init_app(app)
+    
     mail.init_app(app)
+    app.logger.info("Mail initialized with USERNAME: %s", "SET" if app.config.get('MAIL_USERNAME') else "NOT SET")
+    app.logger.info("App startup complete.")
     
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'warning'
@@ -114,6 +127,8 @@ def create_app():
 
     return app
 
+# Expose app globally for gunicorn app:app
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5001)))

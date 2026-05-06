@@ -174,87 +174,91 @@ def register():
         # 11. LinkedIn (optional)
         linkedin = request.form.get('linkedin', '').strip() or None
 
-        # 12. Email uniqueness — check BOTH collections
-        if User.find_by_email(email):
-            flash('That email address is already registered. Please log in instead.', 'warning')
-            return redirect(url_for('auth.login'))
+        # 12–17: All DB operations wrapped in try/except
+        try:
+            # 12. Email uniqueness — check BOTH collections
+            if User.find_by_email(email):
+                flash('That email address is already registered. Please log in instead.', 'warning')
+                return redirect(url_for('auth.login'))
 
-        # 12a. Check pending_users — prevent duplicate in-flight registrations
-        if PendingUser.find_by_email(email):
-            session['otp_email'] = email
-            flash(
-                'A registration with that email is already in progress. '
-                'Please enter the OTP sent to your inbox, or request a new one.',
-                'warning'
+            # 12a. Check pending_users — prevent duplicate in-flight registrations
+            if PendingUser.find_by_email(email):
+                session['otp_email'] = email
+                flash(
+                    'A registration with that email is already in progress. '
+                    'Please enter the OTP sent to your inbox, or request a new one.',
+                    'warning'
+                )
+                return redirect(url_for('auth.verify_otp'))
+
+            # 12.5 Alumni proof document upload (existing logic preserved)
+            proof_filename = None
+            proof_type     = None
+            if role == 'alumni':
+                proof_type = request.form.get('proof_type')
+                if not proof_type:
+                    flash('Proof type is required for Alumni.', 'danger')
+                    return redirect(url_for('auth.register'))
+
+                if 'resume' not in request.files:
+                    flash('Proof document is required for Alumni.', 'danger')
+                    return redirect(url_for('auth.register'))
+
+                proof_file = request.files['resume']
+                if proof_file.filename == '':
+                    flash('No proof document selected.', 'danger')
+                    return redirect(url_for('auth.register'))
+
+                from werkzeug.utils import secure_filename
+                import os
+                import time
+
+                proofs_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'proofs')
+                os.makedirs(proofs_dir, exist_ok=True)
+
+                sec_filename   = secure_filename(proof_file.filename)
+                _, ext         = os.path.splitext(sec_filename)
+                proof_filename = f"proof_{int(time.time())}{ext}"
+                proof_file.save(os.path.join(proofs_dir, proof_filename))
+
+            # 13. Hash password once here (PendingUser stores it pre-hashed)
+            hashed_password = generate_password_hash(password)
+
+            # 14. Generate OTP
+            otp_code   = generate_otp()
+            otp_expiry = get_otp_expiry(minutes=5)
+
+            # 15. Save to pending_users  (NOT users collection)
+            PendingUser.create(
+                name, email, hashed_password, role, year_int, department,
+                company, skills, linkedin,
+                proof_type=proof_type, proof_file=proof_filename,
+                otp=otp_code, otp_expiry=otp_expiry,
             )
+
+            # 16. Send OTP email
+            success = send_otp_email(email, otp_code, name)
+            if not success:
+                PendingUser.delete(email)
+                flash(
+                    'We could not send the verification email. '
+                    'Please check your email address and try again.',
+                    'danger'
+                )
+                return redirect(url_for('auth.register'))
+
+            flash(
+                f'Registration successful! A 6-digit OTP has been sent to '
+                f'<strong>{email}</strong>. Please verify your email to continue.',
+                'success'
+            )
+            session['otp_email'] = email
             return redirect(url_for('auth.verify_otp'))
 
-        # 12.5 Alumni proof document upload (existing logic preserved)
-        proof_filename = None
-        proof_type     = None
-        if role == 'alumni':
-            proof_type = request.form.get('proof_type')
-            if not proof_type:
-                flash('Proof type is required for Alumni.', 'danger')
-                return redirect(url_for('auth.register'))
-
-            if 'resume' not in request.files:
-                flash('Proof document is required for Alumni.', 'danger')
-                return redirect(url_for('auth.register'))
-
-            proof_file = request.files['resume']
-            if proof_file.filename == '':
-                flash('No proof document selected.', 'danger')
-                return redirect(url_for('auth.register'))
-
-            from werkzeug.utils import secure_filename
-            import os
-            import time
-
-            proofs_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'proofs')
-            os.makedirs(proofs_dir, exist_ok=True)
-
-            sec_filename   = secure_filename(proof_file.filename)
-            _, ext         = os.path.splitext(sec_filename)
-            proof_filename = f"proof_{int(time.time())}{ext}"
-            proof_file.save(os.path.join(proofs_dir, proof_filename))
-
-        # 13. Hash password once here (PendingUser stores it pre-hashed)
-        hashed_password = generate_password_hash(password)
-
-        # 14. Generate OTP
-        otp_code   = generate_otp()
-        otp_expiry = get_otp_expiry(minutes=5)
-
-        # 15. Save to pending_users  (NOT users collection)
-        PendingUser.create(
-            name, email, hashed_password, role, year_int, department,
-            company, skills, linkedin,
-            proof_type=proof_type, proof_file=proof_filename,
-            otp=otp_code, otp_expiry=otp_expiry,
-        )
-
-        # 16. Send OTP email — production: surface real errors to user
-        success = send_otp_email(email, otp_code, name)
-        if not success:
-            # Remove pending record so the user can retry registration cleanly
-            PendingUser.delete(email)
-            flash(
-                'We could not send the verification email. '
-                'Please check your email address and try again.',
-                'danger'
-            )
+        except Exception as exc:
+            current_app.logger.error(f"[Register] DB error: {exc}")
+            flash('A database error occurred. Please try again in a moment.', 'danger')
             return redirect(url_for('auth.register'))
-
-        flash(
-            f'Registration successful! A 6-digit OTP has been sent to '
-            f'<strong>{email}</strong>. Please verify your email to continue.',
-            'success'
-        )
-
-        # 17. Store email in session so verify page knows who to verify
-        session['otp_email'] = email
-        return redirect(url_for('auth.verify_otp'))
 
     return render_template('register.html')
 

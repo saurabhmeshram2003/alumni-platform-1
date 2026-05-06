@@ -2,6 +2,13 @@ import os
 import secrets
 import logging
 
+# Load .env for local development — on Railway/Render real env vars override this
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed; rely on system env vars
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', secrets.token_hex(16))
     MONGO_URI = os.environ.get('MONGO_URI')  # Must be set via Railway env vars

@@ -21,6 +21,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import User, PendingUser
 from utils.otp import generate_otp, get_otp_expiry, send_otp_email
+from extensions import limiter
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -82,6 +83,7 @@ def login():
 # REGISTER  →  saves to pending_users (NOT users)
 # ─────────────────────────────────────────────────────────────────
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@limiter.limit("10 per minute", methods=["POST"])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
@@ -151,10 +153,10 @@ def register():
         # 8. Graduation year
         try:
             year_int = int(graduation_year)
-            if not (1960 <= year_int <= 2035):
+            if not (1980 <= year_int <= 2035):
                 raise ValueError
         except (ValueError, TypeError):
-            flash('Graduation year must be between 1995 and 2035.', 'danger')
+            flash('Graduation year must be between 1980 and 2035.', 'danger')
             return redirect(url_for('auth.register'))
 
         # 9. Company for alumni
@@ -311,6 +313,7 @@ def verify_otp():
 # RESEND OTP  →  updates pending_users record
 # ─────────────────────────────────────────────────────────────────
 @auth_bp.route('/resend-otp', methods=['POST'])
+@limiter.limit("5 per minute")
 def resend_otp():
     email = (request.form.get('email', '') or session.get('otp_email', '')).strip()
 

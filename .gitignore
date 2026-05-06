@@ -73,4 +73,9 @@ static/uploads/stories/
 # ── Misc ────────────────────────────────────────────────────────────
 Profile*.pdf
 *.log
- runtime.txt
+
+# ── Sensitive credential/data files ─────────────────────────────────
+admin-email*
+admin-mail*
+alumni_credentials.txt
+mongo-restartr.txt

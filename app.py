@@ -1,6 +1,6 @@
 from flask import Flask, request, redirect, url_for, render_template_string, abort
 from config import Config
-from extensions import mongo, login_manager, mail
+from extensions import mongo, login_manager, mail, limiter
 import os
 
 
@@ -23,6 +23,7 @@ def create_app():
     login_manager.init_app(app)
     
     mail.init_app(app)
+    limiter.init_app(app)
     app.logger.info("Mail initialized with USERNAME: %s", "SET" if app.config.get('MAIL_USERNAME') else "NOT SET")
     app.logger.info("App startup complete.")
     

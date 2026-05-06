@@ -107,9 +107,9 @@
                 <!-- Graduation Year -->
                 <div class="form-group">
                     <label class="form-label" for="graduation_year">Graduation Year</label>
-                    <input type="number" id="graduation_year" name="graduation_year" class="form-control" min="2000"
+                    <input type="number" id="graduation_year" name="graduation_year" class="form-control" min="1980"
                         max="2035" placeholder="e.g. 2024" required>
-                    <div class="error-feedback" id="yearError">Year must be between 2000 and 2035.</div>
+                    <div class="error-feedback" id="yearError">Year must be between 1980 and 2035.</div>
                 </div>
 
                 <!-- Company (Hidden by default) -->
@@ -359,7 +359,7 @@
 
         function validateYear() {
             const val = parseInt(gradYearInput.value);
-            if (val >= 2000 && val <= 2035) {
+            if (val >= 1980 && val <= 2035) {
                 gradYearInput.classList.remove('is-invalid');
                 gradYearInput.classList.add('is-valid');
             } else {
@@ -408,7 +408,7 @@
             }
 
             const yr = parseInt(gradYearInput.value);
-            if (isNaN(yr) || yr < 2000 || yr > 2035) {
+            if (isNaN(yr) || yr < 1980 || yr > 2035) {
                 prevent = true;
             }
 

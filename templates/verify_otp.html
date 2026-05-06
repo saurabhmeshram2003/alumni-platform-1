@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Email – Alumni Platform</title>
     <meta name="description" content="Verify your email address to complete registration on the Alumni Platform.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
     <style>
         /* ── OTP-specific styles ─────────────────────────────────── */
@@ -209,9 +210,18 @@
             </button>
         </form>
 
+        <!-- Spam warning -->
+        <div style="margin: 0.75rem 0; padding: 0.75rem 1rem; border-radius: 8px;
+                    background: #fffbeb; border: 1px solid #fcd34d;
+                    color: #92400e; font-size: 0.82rem; text-align: center; line-height:1.5;">
+            <strong>⚠️ Don't see the email?</strong><br>
+            Check your <strong>Spam / Junk</strong> folder — our emails sometimes land there.
+            Mark it as "Not Spam" so future emails reach your inbox.
+        </div>
+
         <!-- Resend OTP -->
         <div class="resend-section">
-            <p>Didn't receive the email? Check spam or request a new one.</p>
+            <p>Didn't receive it after checking spam? Request a new OTP below.</p>
             <form method="POST" action="{{ url_for('auth.resend_otp') }}" id="resendForm">
                 <input type="hidden" name="email" value="{{ email }}">
                 <button type="submit" class="btn btn-outline" id="resendBtn" disabled>

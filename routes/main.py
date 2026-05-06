@@ -19,21 +19,24 @@ def index():
     # Read LAUNCH_MODE per-request so .env changes take effect without restart
     launch_mode = os.getenv('LAUNCH_MODE', '1').strip() == '1'
 
-    alumni_count  = mongo.db.users.count_documents({'role': 'alumni', 'is_approved': True})
-    jobs_count    = mongo.db.jobs.count_documents({})
-    events_count  = mongo.db.events.count_documents({})
+    # Gracefully degrade if MongoDB is not connected (e.g. missing MONGO_URI locally)
+    stats = {'alumni_count': 0, 'jobs_count': 0, 'events_count': 0}
+    featured_alumni = []
 
-    stats = {
-        'alumni_count': alumni_count,
-        'jobs_count':   jobs_count,
-        'events_count': events_count,
-    }
+    try:
+        if mongo.db is not None:
+            stats['alumni_count']  = mongo.db.users.count_documents({'role': 'alumni', 'is_approved': True})
+            stats['jobs_count']    = mongo.db.jobs.count_documents({})
+            stats['events_count']  = mongo.db.events.count_documents({})
 
-    pipeline = [
-        {'$match': {'role': 'alumni', 'is_approved': True}},
-        {'$sample': {'size': 4}},
-    ]
-    featured_alumni = list(mongo.db.users.aggregate(pipeline))
+            pipeline = [
+                {'$match': {'role': 'alumni', 'is_approved': True}},
+                {'$sample': {'size': 4}},
+            ]
+            featured_alumni = list(mongo.db.users.aggregate(pipeline))
+    except Exception as e:
+        from flask import current_app
+        current_app.logger.error(f"[Homepage] DB query failed: {e}")
 
     return render_template('index.html', stats=stats, featured_alumni=featured_alumni,
                            launch_mode=launch_mode)

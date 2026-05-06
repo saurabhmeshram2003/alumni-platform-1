@@ -1,18 +1,22 @@
 import os
 import secrets
+import logging
 
 class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', secrets.token_hex(16))
+    SECRET_KEY = os.environ.get('SECRET_KEY', secrets.token_hex(16))
     MONGO_URI = os.environ.get('MONGO_URI')  # Must be set via Railway env vars
     
     # Mail settings
-    MAIL_SERVER         = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
-    MAIL_PORT           = int(os.getenv('MAIL_PORT', 587))
-    MAIL_USE_TLS        = os.getenv('MAIL_USE_TLS', 'True') == 'True'
-    MAIL_USE_SSL        = os.getenv('MAIL_USE_SSL', 'False') == 'True'
-    MAIL_USERNAME       = os.getenv('MAIL_USERNAME')
-    MAIL_PASSWORD       = os.getenv('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER') or os.getenv('MAIL_USERNAME')
+    MAIL_SERVER         = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT           = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS        = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+    MAIL_USE_SSL        = os.environ.get('MAIL_USE_SSL', 'False') == 'True'
+    MAIL_USERNAME       = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD       = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or os.environ.get('MAIL_USERNAME')
+    
+    if not MAIL_USERNAME or not MAIL_PASSWORD:
+        logging.warning("MAIL_USERNAME or MAIL_PASSWORD is not set in the environment. Email sending may fail.")
     
     # Upload folder
     UPLOAD_FOLDER = os.path.join('static', 'uploads')

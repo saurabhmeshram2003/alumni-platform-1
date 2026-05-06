@@ -230,10 +230,8 @@ def register():
         )
 
         # 16. Send OTP email — production: surface real errors to user
-        try:
-            send_otp_email(email, otp_code, name)
-        except Exception as exc:
-            current_app.logger.error("OTP mail error for %s: %s", email, exc)
+        success = send_otp_email(email, otp_code, name)
+        if not success:
             # Remove pending record so the user can retry registration cleanly
             PendingUser.delete(email)
             flash(
@@ -345,11 +343,10 @@ def resend_otp():
     PendingUser.update_otp(email, new_otp, new_expiry)
 
     # ── Send email — production: surface real errors to user ────────
-    try:
-        send_otp_email(email, new_otp, pending.get('name', 'User'))
+    success = send_otp_email(email, new_otp, pending.get('name', 'User'))
+    if success:
         flash('A new OTP has been sent to your email address.', 'success')
-    except Exception as exc:
-        current_app.logger.error("Resend OTP error for %s: %s", email, exc)
+    else:
         flash(
             'Could not send the OTP email. Please check your connection and try again.',
             'danger'

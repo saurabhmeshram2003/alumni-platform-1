@@ -42,39 +42,44 @@ def login():
         password = request.form.get('password', '')
         remember = bool(request.form.get('remember'))
 
-        user_data = User.find_by_email(email)
+        try:
+            user_data = User.find_by_email(email)
 
-        if user_data and check_password_hash(user_data['password'], password):
+            if user_data and check_password_hash(user_data['password'], password):
 
-            # Legacy / admin accounts have no 'verified' key → default True
-            if not user_data.get('verified', True):
-                session['otp_email'] = email
-                flash('Please verify your email address before logging in. '
-                      'Check your inbox for the OTP.', 'warning')
-                return redirect(url_for('auth.verify_otp'))
+                # Legacy / admin accounts have no 'verified' key → default True
+                if not user_data.get('verified', True):
+                    session['otp_email'] = email
+                    flash('Please verify your email address before logging in. '
+                          'Check your inbox for the OTP.', 'warning')
+                    return redirect(url_for('auth.verify_otp'))
 
-            from models import UserMixin
-            user_obj = UserMixin(user_data)
+                from models import UserMixin
+                user_obj = UserMixin(user_data)
 
-            if not user_obj.is_approved:
-                flash('Your account is pending admin approval.', 'warning')
-                return redirect(url_for('auth.login'))
+                if not user_obj.is_approved:
+                    flash('Your account is pending admin approval.', 'warning')
+                    return redirect(url_for('auth.login'))
 
-            login_user(user_obj, remember=remember)
-            flash('Logged in successfully.', 'success')
+                login_user(user_obj, remember=remember)
+                flash('Logged in successfully.', 'success')
 
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard.index'))
+                next_page = request.args.get('next')
+                return redirect(next_page or url_for('dashboard.index'))
 
-        else:
-            # Check if they exist in pending_users and redirect them to verify
-            pending = PendingUser.find_by_email(email)
-            if pending:
-                session['otp_email'] = email
-                flash('Your email is not verified yet. Please enter your OTP.', 'warning')
-                return redirect(url_for('auth.verify_otp'))
+            else:
+                # Check if they exist in pending_users and redirect them to verify
+                pending = PendingUser.find_by_email(email)
+                if pending:
+                    session['otp_email'] = email
+                    flash('Your email is not verified yet. Please enter your OTP.', 'warning')
+                    return redirect(url_for('auth.verify_otp'))
 
-            flash('Please check your login details and try again.', 'danger')
+                flash('Please check your login details and try again.', 'danger')
+
+        except Exception as exc:
+            current_app.logger.error(f"[Login] Error: {exc}")
+            flash('A server error occurred. Please try again in a moment.', 'danger')
 
     return render_template('login.html')
 

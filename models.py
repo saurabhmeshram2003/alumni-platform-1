@@ -3,10 +3,24 @@ from bson import ObjectId
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 
+
+def _db():
+    """
+    Safe accessor for mongo.db — raises RuntimeError with a clear
+    message if MONGO_URI was not set in the environment.
+    """
+    if mongo.db is None:
+        raise RuntimeError(
+            "MongoDB is not connected. "
+            "Ensure MONGO_URI is set in the Railway / Render environment variables."
+        )
+    return mongo.db
+
+
 class User:
     @staticmethod
     def collection():
-        return mongo.db.users
+        return _db().users
 
     @staticmethod
     def create(name, email, password, role, graduation_year, department,
@@ -55,7 +69,7 @@ class User:
 class PendingUser:
     @staticmethod
     def collection():
-        return mongo.db.pending_users
+        return _db().pending_users
 
     @staticmethod
     def create(name, email, password, role, graduation_year, department,
@@ -104,7 +118,7 @@ class PendingUser:
         doc['otp']           = None
         doc['otp_expiry']    = None
         doc['otp_resend_at'] = None
-        result = mongo.db.users.insert_one(doc)
+        result = _db().users.insert_one(doc)
         PendingUser.collection().delete_one({'email': email})
         return result.inserted_id
 
@@ -150,20 +164,25 @@ class UserMixin:
         self.education = user_data.get('education', [])
         self.certificates = user_data.get('certificates', [])
         self.position = user_data.get('position', '')
-        
-    def is_authenticated(self): 
+
+    def is_authenticated(self):
         return True
-    def is_active(self): 
+    def is_active(self):
         return self.is_approved
-    def is_anonymous(self): 
+    def is_anonymous(self):
         return False
-    def get_id(self): 
+    def get_id(self):
         return self.id
 
+
 from extensions import login_manager
+
 @login_manager.user_loader
 def load_user(user_id):
-    user_data = User.find_by_id(user_id)
-    if user_data:
-        return UserMixin(user_data)
+    try:
+        user_data = User.find_by_id(user_id)
+        if user_data:
+            return UserMixin(user_data)
+    except Exception:
+        pass
     return None

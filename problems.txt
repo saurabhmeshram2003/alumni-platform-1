@@ -1,0 +1,167 @@
+============================================================
+ ALUMNI PLATFORM — KNOWN ISSUES & PROBLEMS
+ Generated: 2026-05-06
+============================================================
+
+──────────────────────────────────────────
+1. OTP EMAIL NOT BEING RECEIVED  [CRITICAL]
+──────────────────────────────────────────
+Problem:
+  - MAIL_USERNAME and MAIL_PASSWORD are read from os.environ.get().
+  - On Render, these env vars MUST be manually set in the Render Dashboard
+    under Environment → Environment Variables.
+  - If they are missing, mail.send() silently returns False and no email
+    is dispatched — no crash, but no OTP either.
+  - The Gmail App Password (dntfgrfqlsnmvjyz) may also be expired or
+    revoked by Google if 2FA settings changed.
+
+Fix Required:
+  - Go to render.com → Your Service → Environment
+  - Add: MAIL_USERNAME=opercent517@gmail.com
+  - Add: MAIL_PASSWORD=dntfgrfqlsnmvjyz
+  - Add: MAIL_DEFAULT_SENDER=opercent517@gmail.com
+  - Add: MAIL_SERVER=smtp.gmail.com
+  - Add: MAIL_PORT=587
+  - Add: MAIL_USE_TLS=True
+  - Add: MAIL_USE_SSL=False
+  - Verify the Gmail App Password is still valid at:
+    https://myaccount.google.com/apppasswords
+
+──────────────────────────────────────────
+2. DOUBLE APP INITIALIZATION  [CRITICAL]
+──────────────────────────────────────────
+Problem:
+  - app.py now exposes `app = create_app()` at module level.
+  - wsgi.py was also calling `app = create_app()` separately.
+  - This caused MongoDB and Flask-Mail to be initialized TWICE,
+    leading to double connections and potential startup errors.
+
+Fix Applied:
+  - wsgi.py now imports the already-created app: `from app import app`
+
+──────────────────────────────────────────
+3. HTTP 502 ON REGISTRATION  [HIGH]
+──────────────────────────────────────────
+Problem:
+  - If email sending takes >30s (SMTP timeout), Gunicorn's request
+    times out before a response is sent, causing a 502 Bad Gateway.
+  - The default Gunicorn worker timeout may not be enough.
+
+Fix Required:
+  - Procfile already sets --timeout 120, which should help.
+  - Consider sending OTP email asynchronously (e.g. using threading
+    or a background task queue like Celery/RQ) in future.
+
+──────────────────────────────────────────
+4. "CREATE FREE ACCOUNT" TEXT  [MEDIUM]
+──────────────────────────────────────────
+Problem:
+  - Landing page hero and CTA strip say "Create Free Account" or
+    "Create Your Account" — since this is a college platform, the
+    word "free" is unnecessary and slightly unprofessional.
+
+Fix Applied:
+  - Changed "Create Your Account" → "Join the Network"
+  - Changed "Register Now" kept as-is (appropriate for a college context)
+
+──────────────────────────────────────────
+5. LANDING PAGE NOT FULLY RESPONSIVE  [MEDIUM]
+──────────────────────────────────────────
+Problem:
+  - Hero section stat cards stack awkwardly on very small screens (<360px).
+  - Feature section uses 3-col grid that collapses, but card padding
+    is too large on mobile, causing overflow.
+  - No hero image or visual anchor on the right side of the hero.
+  - CTA strip bottom text is small and hard to read on mobile.
+
+Fix Applied:
+  - Redesigned hero section with responsive grid and college image.
+  - Tightened padding on mobile for all sections.
+  - Added a prominent college image panel in the hero.
+
+──────────────────────────────────────────
+6. REGISTRATION PAGE USES DIFFERENT STYLESHEET  [MEDIUM]
+──────────────────────────────────────────
+Problem:
+  - register.html does NOT extend base.html — it uses auth.css only.
+  - This means the navbar, flash messages from base.html, and dark mode
+    are all MISSING on the register page.
+  - Inconsistent styling between register page and the rest of the site.
+
+Fix Required:
+  - Refactor register.html to extend base.html for consistent UI.
+
+──────────────────────────────────────────
+7. GRADUATION YEAR VALIDATION BUG  [MEDIUM]
+──────────────────────────────────────────
+Problem:
+  - Frontend HTML validation says min="2000", but backend Flask
+    validates year between 1960 and 2035.
+  - Flash message says "between 1995 and 2035" — all three are
+    inconsistent with each other.
+
+Fix Required:
+  - Align all three: use 1980–2035 as a reasonable range everywhere.
+
+──────────────────────────────────────────
+8. ADMIN CREDENTIALS IN PLAIN TEXT  [HIGH]
+──────────────────────────────────────────
+Problem:
+  - .env file contains admin credentials, MongoDB URI, and Gmail
+    App Password in plaintext.
+  - admin-mail&password.txt and alumni_credentials.txt files are
+    committed to the repository.
+
+Fix Required:
+  - Add sensitive txt files to .gitignore immediately.
+  - Rotate the Gmail App Password after public exposure.
+  - Ensure .env is in .gitignore (verify with: git check-ignore .env).
+
+──────────────────────────────────────────
+9. OTP EMAIL GOES TO SPAM  [MEDIUM]
+──────────────────────────────────────────
+Problem:
+  - Emails sent from a Gmail account via SMTP App Password frequently
+    land in spam folders because the sender domain (gmail.com) has
+    no custom domain SPF/DKIM configured for this platform.
+
+Fix Required:
+  - Add "Check your spam folder" note on the OTP verify page.
+  - Consider using a transactional email service like SendGrid or
+    Brevo (free tiers available) for better deliverability.
+
+──────────────────────────────────────────
+10. NO RATE LIMITING ON OTP RESEND  [LOW]
+──────────────────────────────────────────
+Problem:
+  - While a 30-second cooldown exists in code, there is no server-side
+    rate limiting (e.g., Flask-Limiter) to prevent abuse.
+  - A malicious user can bypass the JS cooldown via direct POST requests.
+
+Fix Required:
+  - Install Flask-Limiter and apply @limiter.limit("5/minute") to
+    /resend-otp and /register routes.
+
+──────────────────────────────────────────
+11. MISSING FAVICON  [LOW]
+──────────────────────────────────────────
+Problem:
+  - No favicon.ico is defined in base.html, leading to 404 errors
+    in browser console on every page load.
+
+Fix Required:
+  - Add a favicon.ico to /static/ and link it in base.html <head>.
+
+──────────────────────────────────────────
+12. DARK MODE NOT PERSISTED ON REGISTER/LOGIN  [LOW]
+──────────────────────────────────────────
+Problem:
+  - register.html and login.html do not extend base.html, so they
+    have no dark mode support or persistence.
+
+Fix Required:
+  - Integrate register.html and login.html into base.html.
+
+============================================================
+ END OF PROBLEMS FILE
+============================================================

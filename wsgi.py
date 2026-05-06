@@ -9,6 +9,5 @@ Usage:
 Railway / Render reads this via Procfile or nixpacks.toml start command.
 ────────────────────────────────────────────────────────────────────
 """
-from app import create_app
-
-app = create_app()
+# Import the module-level app (already initialized in app.py)
+from app import app  # noqa: F401

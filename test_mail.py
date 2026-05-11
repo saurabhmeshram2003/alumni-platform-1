@@ -4,7 +4,7 @@ from flask import Flask
 from config import Config
 from extensions import mail
 from utils.otp import send_otp_email
-import time
+import threading
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -17,6 +17,8 @@ with app.app_context():
     result = send_otp_email("opercent517@gmail.com", "123456", "Test User")
     print(f"send_otp_email returned: {result}")
     
-    # Wait to allow background thread to execute
-    time.sleep(5)
+    # Wait for all daemon threads to finish
+    for t in threading.enumerate():
+        if t is not threading.current_thread():
+            t.join(timeout=10)
     print("Done waiting.")

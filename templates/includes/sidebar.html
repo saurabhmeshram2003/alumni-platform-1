@@ -43,6 +43,11 @@
             <i class="fas fa-hands-helping w-6 text-center mr-2 {% if 'mentorship' in current_endpoint %}text-primary dark:text-secondary{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
             Mentorship
         </a>
+        
+        <a href="https://aibasedresumeanalyzer-drab.vercel.app/" target="_blank" title="Analyze your resume using AI" class="text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 group flex items-center px-3 py-2 text-sm font-medium rounded-l-md transition-colors">
+            <i class="fas fa-robot w-6 text-center mr-2 text-gray-400 group-hover:text-gray-500"></i>
+            AI Resume Analyzer
+        </a>
     </nav>
     
     {% if current_user.role == 'admin' %}

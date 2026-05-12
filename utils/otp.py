@@ -31,36 +31,24 @@ def get_otp_expiry(minutes: int = 5) -> datetime:
     return datetime.utcnow() + timedelta(minutes=minutes)
 
 
-def _send_in_background(app, msg):
-    """
-    Send a Flask-Mail message inside a background thread with app context.
-
-    Why Gmail SMTP may fail intermittently:
-    - Gmail sometimes enforces rate limits or drops connections unexpectedly.
-    - App Passwords can be temporarily blocked if Google detects suspicious activity.
-    - Network latency on Render/Railway can cause the SMTP handshake to time out.
-
-    How this prevents crashes:
-    - By moving `mail.send(msg)` into a background thread, the main HTTP request 
-      does not block waiting for the SMTP server.
-    - This completely eliminates the "HTTP 502 Bad Gateway" errors that occur 
-      when Gunicorn workers time out waiting for an email to send.
-    - All `mail.send()` calls are wrapped in try/except, preventing unhandled exceptions.
-    """
+def _send_mail_sync(app, msg):
+    """Synchronously send the email within the app context."""
     with app.app_context():
         try:
             mail.send(msg)
             app.logger.info(f"[Email] Successfully sent OTP email to {msg.recipients}")
+            return True, ""
         except Exception as e:
-            app.logger.error(f"[Email] Exact exception during background send: {str(e)}")
+            app.logger.error(f"[Email] Exact exception during send: {str(e)}")
+            return False, str(e)
 
 
-def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "User") -> bool:
+def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "User") -> tuple[bool, str]:
     """
     Send OTP via Gmail SMTP using Flask-Mail.
-    Email is dispatched in a background thread so the HTTP request
-    returns immediately — prevents HTTP 502 on Render.
-    Returns True if the email was queued successfully, False if config is missing.
+    Attempts to send synchronously with a timeout to catch bad passwords
+    and prevent silent failures, while avoiding HTTP 502 errors.
+    Returns (success_bool, error_message).
     """
     try:
         app = current_app._get_current_object()
@@ -72,11 +60,11 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
 
         if not sender:
             app.logger.warning("MAIL_USERNAME / MAIL_DEFAULT_SENDER is not set. Cannot send OTP.")
-            return False
+            return False, "Email configuration missing (MAIL_USERNAME)."
 
         if not app.config.get('MAIL_PASSWORD'):
             app.logger.warning("MAIL_PASSWORD is not set. Cannot send OTP.")
-            return False
+            return False, "Email configuration missing (MAIL_PASSWORD)."
 
         subject = "Alumni Platform – Email Verification OTP"
 
@@ -136,11 +124,18 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
             html=html_body,
         )
 
-        # Fire-and-forget in background thread — prevents request timeout / HTTP 502
-        t = threading.Thread(target=_send_in_background, args=(app, msg), daemon=True)
-        t.start()
-        return True
+        from concurrent.futures import ThreadPoolExecutor, TimeoutError
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_send_mail_sync, app, msg)
+            try:
+                # Wait up to 10 seconds. Catch bad passwords immediately.
+                success, error = future.result(timeout=10)
+                return success, error
+            except TimeoutError:
+                # Still running, might succeed. Return true to not fail user.
+                app.logger.warning("[Email] SMTP is slow. Continuing in background...")
+                return True, ""
 
     except Exception as e:
         current_app.logger.error(f"[Email] Failed to queue OTP email: {e}")
-        return False
+        return False, str(e)

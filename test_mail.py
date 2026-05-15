@@ -14,7 +14,7 @@ mail.init_app(app)
 
 with app.app_context():
     print("Sending OTP via send_otp_email...")
-    result = send_otp_email("opercent517@gmail.com", "123456", "Test User")
+    result = send_otp_email("academicsmaterial7474@gmail.com", "123456", "Test User")
     print(f"send_otp_email returned: {result}")
     
     # Wait for all daemon threads to finish

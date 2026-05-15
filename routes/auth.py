@@ -18,9 +18,11 @@ from flask import (Blueprint, render_template, redirect, url_for,
                    flash, request, session, current_app)
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
+from itsdangerous import URLSafeTimedSerializer
 
 from models import User, PendingUser
-from utils.otp import generate_otp, get_otp_expiry, send_otp_email
+from utils.otp import generate_otp, get_otp_expiry, send_otp_email, send_reset_email
+from extensions import limiter
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -32,6 +34,7 @@ OTP_RESEND_COOLDOWN = 30
 # LOGIN  (unchanged logic — users collection only)
 # ─────────────────────────────────────────────────────────────────
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("20 per hour")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
@@ -87,6 +90,7 @@ def login():
 # REGISTER  →  saves to pending_users (NOT users)
 # ─────────────────────────────────────────────────────────────────
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@limiter.limit("10 per hour")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
@@ -312,6 +316,7 @@ def verify_otp():
 # RESEND OTP  →  updates pending_users record
 # ─────────────────────────────────────────────────────────────────
 @auth_bp.route('/resend-otp', methods=['POST'])
+@limiter.limit("5 per minute")
 def resend_otp():
     email = (request.form.get('email', '') or session.get('otp_email', '')).strip()
 
@@ -361,3 +366,65 @@ def logout():
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
+
+
+# ─────────────────────────────────────────────────────────────────
+# FORGOT PASSWORD
+# ─────────────────────────────────────────────────────────────────
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+        
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        user = User.find_by_email(email)
+        
+        if user:
+            # Generate token
+            serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+            token = serializer.dumps(email, salt='password-reset-salt')
+            reset_url = url_for('auth.reset_password', token=token, _external=True)
+            
+            # Send email
+            send_reset_email(email, reset_url, user.get('name', 'User'))
+            
+        # Always flash the same message to prevent email enumeration
+        flash('If your email is registered, you will receive a password reset link shortly.', 'info')
+        return redirect(url_for('auth.login'))
+        
+    return render_template('forgot_password.html')
+
+
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+        
+    try:
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        # Token expiry 30 minutes (1800 seconds)
+        email = serializer.loads(token, salt='password-reset-salt', max_age=1800)
+    except Exception:
+        flash('The reset link is invalid or has expired.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+        
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$', password):
+            flash('Password must be at least 8 chars, 1 uppercase, 1 lowercase, 1 number, and 1 special character.', 'danger')
+            return redirect(url_for('auth.reset_password', token=token))
+            
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return redirect(url_for('auth.reset_password', token=token))
+            
+        # Update user's password
+        User.update_password(email, password)
+        flash('Your password has been updated! You can now log in.', 'success')
+        return redirect(url_for('auth.login'))
+        
+    return render_template('reset_password.html', token=token)

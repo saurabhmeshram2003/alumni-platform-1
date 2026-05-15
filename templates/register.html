@@ -1,34 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration - Alumni Platform</title>
+{% block title %}Registration - Alumni Platform{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-</head>
+{% endblock %}
 
-<body>
-
-    <div class="auth-container register">
+{% block content %}
+    <div class="auth-container register" style="margin-top: 4rem;">
         <div class="auth-header">
             <h1>Create an Account</h1>
             <p>Join the secure Alumni network</p>
         </div>
 
-        <div class="flash-messages">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            {% set alert_class = 'alert-success' if category == 'success' else 'alert-danger' if category in ['danger',
-            'error'] else 'alert-warning' %}
-            <div class="alert {{ alert_class }}">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-        </div>
-
         <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-grid two-cols">
                 <!-- Full Name -->
                 <div class="form-group full-width">
@@ -157,7 +143,9 @@
             <a href="{{ url_for('main.index') }}" style="color: var(--text-muted);">&larr; Back to Home</a>
         </div>
     </div>
+{% endblock %}
 
+{% block scripts %}
     <script>
         function togglePassword(id) {
             const input = document.getElementById(id);
@@ -442,6 +430,4 @@
             }
         });
     </script>
-</body>
-
-</html>
+{% endblock %}

@@ -1,11 +1,17 @@
 from flask import Flask, request, redirect, url_for, render_template_string, abort
 from config import Config
-from extensions import mongo, login_manager, mail
+from extensions import mongo, login_manager, mail, csrf, limiter
 import os
+from flask_talisman import Talisman
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 def create_app():
     app = Flask(__name__)
+    
+    # Trust reverse proxy on Railway
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    
     app.config.from_object(Config)
 
     # Initialize extensions
@@ -24,6 +30,29 @@ def create_app():
 
     mail.init_app(app)
     app.logger.info("Mail initialized with USERNAME: %s", "SET" if app.config.get('MAIL_USERNAME') else "NOT SET")
+    
+    # Initialize security extensions
+    csrf.init_app(app)
+    limiter.init_app(app)
+    
+    # Configure Talisman (Content Security Policy)
+    # We allow inline scripts/styles for basic templates and fonts
+    csp = {
+        'default-src': [
+            '\'self\'',
+            '\'unsafe-inline\'',
+            '\'unsafe-eval\'',
+            'https://cdn.jsdelivr.net',
+            'https://fonts.googleapis.com',
+            'https://fonts.gstatic.com',
+            'https://cdnjs.cloudflare.com',
+            'https://code.jquery.com'
+        ],
+        'img-src': ['\'self\'', 'data:', 'blob:', '*'],
+        'font-src': ['\'self\'', 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
+    }
+    Talisman(app, content_security_policy=csp, content_security_policy_nonce_in=['script-src'])
+    
     app.logger.info("App startup complete.")
     
     login_manager.login_view = 'auth.login'

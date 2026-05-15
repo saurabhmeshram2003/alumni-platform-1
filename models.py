@@ -60,6 +60,11 @@ class User:
     def find_by_id(user_id):
         return User.collection().find_one({'_id': ObjectId(user_id)})
 
+    @staticmethod
+    def update_password(email, new_password):
+        hashed = generate_password_hash(new_password)
+        User.collection().update_one({'email': email}, {'$set': {'password': hashed}})
+
 
 # ─────────────────────────────────────────────────────────────────
 # PendingUser  —  temporary store BEFORE OTP verification

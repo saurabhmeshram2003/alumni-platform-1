@@ -20,6 +20,7 @@
   <form method="POST" action="{{ url_for('stories.submit') }}"
         enctype="multipart/form-data"
         class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-8 space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
     <!-- Title -->
     <div>

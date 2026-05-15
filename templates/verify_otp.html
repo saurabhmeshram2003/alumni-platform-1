@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Email – Alumni Platform</title>
+{% extends 'base.html' %}
+
+{% block title %}Verify Email - Alumni Platform{% endblock %}
+
+{% block head %}
     <meta name="description" content="Verify your email address to complete registration on the Alumni Platform.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
@@ -148,10 +147,36 @@
 
         /* Allow safe HTML in flash (for <strong> tags) */
         .flash-messages .alert { line-height: 1.6; }
+
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
-</head>
-<body>
-    <div class="auth-container">
+{% endblock %}
+
+{% block content %}
+    <div class="auth-container" style="margin-top: 4rem;">
 
         <!-- Header -->
         <div class="auth-header">
@@ -163,23 +188,10 @@
             </p>
         </div>
 
-        <!-- Flash messages -->
-        <div class="flash-messages" id="flashMessages">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        {% set alert_class = 'alert-success' if category == 'success'
-                                         else 'alert-danger'  if category in ['danger','error']
-                                         else 'alert-warning' if category == 'warning'
-                                         else 'alert-info' %}
-                        <div class="alert {{ alert_class }}">{{ message | safe }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-        </div>
 
         <!-- OTP form -->
         <form method="POST" action="{{ url_for('auth.verify_otp') }}" id="otpForm" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="email" value="{{ email }}">
             <input type="hidden" name="otp"   id="otpHidden" value="">
 
@@ -223,6 +235,7 @@
         <div class="resend-section">
             <p>Didn't receive it after checking spam? Request a new OTP below.</p>
             <form method="POST" action="{{ url_for('auth.resend_otp') }}" id="resendForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="email" value="{{ email }}">
                 <button type="submit" class="btn btn-outline" id="resendBtn" disabled>
                     🔁 Resend OTP
@@ -236,7 +249,9 @@
             <a href="{{ url_for('auth.login') }}">← Back to Login</a>
         </div>
     </div>
+{% endblock %}
 
+{% block scripts %}
     <script>
     (() => {
         'use strict';
@@ -298,6 +313,8 @@
                 boxes.forEach(b => b.classList.add('is-invalid'));
                 setTimeout(() => boxes.forEach(b => b.classList.remove('is-invalid')), 600);
                 boxes[0].focus();
+            } else {
+                verifyBtn.classList.add('btn-loading');
             }
         });
 
@@ -337,5 +354,4 @@
         }, 1000);
     })();
     </script>
-</body>
-</html>
+{% endblock %}

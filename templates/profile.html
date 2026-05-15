@@ -277,6 +277,7 @@
                     <!-- Edit Mode Form -->
                     <form x-show="editMode" style="display: none;" action="{{ url_for('alumni.update_profile') }}"
                         method="POST" class="space-y-8 block">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div
                             class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6 border border-blue-100 dark:border-blue-800/50 flex flex-col block">
                             <h4 class="text-blue-800 dark:text-blue-300 font-bold mb-1"><i
@@ -399,6 +400,7 @@
                                 <form action="{{ url_for('jobs.delete_job', job_id=job._id) }}" method="POST"
                                     onsubmit="return confirm('Are you sure you want to delete this job post?');"
                                     class="block">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit"
                                         class="bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:text-red-400 p-3 rounded-xl transition-colors shadow-sm"
                                         title="Delete Job">
@@ -498,6 +500,7 @@
                 class="inline-block align-bottom bg-white dark:bg-darkCard rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-100 dark:border-gray-800 block">
                 <form action="{{ url_for('alumni.upload_image') }}" method="POST" enctype="multipart/form-data"
                     class="block">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="px-6 pt-5 pb-6 sm:p-8 block">
                         <div class="sm:flex sm:items-start block">
                             <div
@@ -625,6 +628,7 @@
 
                 <!-- Form -->
                 <form method="POST" action="{{ url_for('mentorship.create_request') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="alumni_id" value="{{ user.id }}">
                     <div class="px-6 py-5 space-y-4">
                         <!-- Alumni info summary -->

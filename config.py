@@ -13,6 +13,11 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', secrets.token_hex(16))
     MONGO_URI = os.environ.get('MONGO_URI')  # Must be set via Railway env vars
     
+    # Security settings
+    SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') != 'development'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
     # Mail settings
     MAIL_SERVER         = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT           = int(os.environ.get('MAIL_PORT', 587))

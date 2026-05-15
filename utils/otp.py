@@ -53,14 +53,14 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
     try:
         app = current_app._get_current_object()
 
-        sender = (
-            app.config.get('MAIL_DEFAULT_SENDER')
-            or app.config.get('MAIL_USERNAME')
-        )
-
-        if not sender:
+        mail_username = app.config.get('MAIL_USERNAME')
+        sender_email = app.config.get('MAIL_DEFAULT_SENDER') or mail_username
+        
+        if not sender_email:
             app.logger.warning("MAIL_USERNAME / MAIL_DEFAULT_SENDER is not set. Cannot send OTP.")
-            return False, "Email configuration missing (MAIL_USERNAME)."
+            return False, "Email configuration missing."
+
+        sender = ("AlumniConnect", sender_email)
 
         if not app.config.get('MAIL_PASSWORD'):
             app.logger.warning("MAIL_PASSWORD is not set. Cannot send OTP.")
@@ -124,18 +124,92 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
             html=html_body,
         )
 
-        from concurrent.futures import ThreadPoolExecutor, TimeoutError
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(_send_mail_sync, app, msg)
-            try:
-                # Wait up to 10 seconds. Catch bad passwords immediately.
-                success, error = future.result(timeout=10)
-                return success, error
-            except TimeoutError:
-                # Still running, might succeed. Return true to not fail user.
-                app.logger.warning("[Email] SMTP is slow. Continuing in background...")
-                return True, ""
+        def _send_mail_sync_thread(app_obj, message):
+            with app_obj.app_context():
+                try:
+                    mail.send(message)
+                    app_obj.logger.info(f"[Email] Successfully sent OTP email to {message.recipients}")
+                except Exception as e:
+                    app_obj.logger.error(f"[Email] Exact exception during send: {str(e)}")
+
+        # Start a background thread
+        thread = threading.Thread(target=_send_mail_sync_thread, args=(app, msg))
+        thread.start()
+        
+        return True, ""
 
     except Exception as e:
         current_app.logger.error(f"[Email] Failed to queue OTP email: {e}")
         return False, str(e)
+
+
+def send_reset_email(recipient_email: str, reset_url: str, recipient_name: str = "User") -> tuple[bool, str]:
+    try:
+        app = current_app._get_current_object()
+
+        mail_username = app.config.get('MAIL_USERNAME')
+        sender_email = app.config.get('MAIL_DEFAULT_SENDER') or mail_username
+
+        if not sender_email:
+            app.logger.warning("MAIL_USERNAME / MAIL_DEFAULT_SENDER is not set. Cannot send reset email.")
+            return False, "Email configuration missing."
+
+        sender = ("AlumniConnect", sender_email)
+
+        subject = "Alumni Platform – Password Reset"
+        
+        body = (
+            f"Hello {recipient_name},\n\n"
+            f"You have requested to reset your password on the Alumni Platform.\n"
+            f"Click the link below to reset your password:\n\n"
+            f"{reset_url}\n\n"
+            f"This link will expire in 30 minutes.\n"
+            f"If you didn't request this, please ignore this email.\n"
+        )
+        
+        html_body = f"""
+        <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:auto;
+                    padding:32px;border:1px solid #E5E7EB;border-radius:12px;
+                    background:#ffffff;">
+            <h2 style="color:#4F46E5;margin-bottom:8px;">Alumni Platform</h2>
+            <p style="color:#1F2937;margin-bottom:8px;">Hello <strong>{recipient_name}</strong>,</p>
+            <p style="color:#1F2937;margin-bottom:24px;">
+                You have requested to reset your password. Click the button below to reset it.
+            </p>
+            <div style="text-align:center;margin-bottom:24px;">
+                <a href="{reset_url}" style="background-color:#4F46E5;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;">Reset Password</a>
+            </div>
+            <p style="color:#6B7280;font-size:13px;margin-bottom:8px;">
+                ⏱ This link expires in <strong>30 minutes</strong>.
+            </p>
+            <p style="color:#9CA3AF;font-size:12px;">
+                If you didn't request this, please ignore this email.
+            </p>
+        </div>
+        """
+
+        msg = Message(
+            subject=subject,
+            sender=sender,
+            recipients=[recipient_email],
+            body=body,
+            html=html_body,
+        )
+
+        def _send_reset_sync_thread(app_obj, message):
+            with app_obj.app_context():
+                try:
+                    mail.send(message)
+                    app_obj.logger.info(f"[Email] Successfully sent reset email to {message.recipients}")
+                except Exception as e:
+                    app_obj.logger.error(f"[Email] Failed to send reset email: {str(e)}")
+
+        thread = threading.Thread(target=_send_reset_sync_thread, args=(app, msg))
+        thread.start()
+        
+        return True, ""
+
+    except Exception as e:
+        current_app.logger.error(f"[Email] Failed to queue reset email: {e}")
+        return False, str(e)
+

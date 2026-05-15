@@ -104,6 +104,7 @@
         <!-- Comment Form -->
         <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
             <form action="{{ url_for('stories.comment', story_id=story._id) }}" method="POST" class="flex gap-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) if current_user.profile_image != 'default.png' else 'https://ui-avatars.com/api/?name=' ~ current_user.name|urlencode ~ '&background=4F46E5&color=fff' }}"
                      class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200">
                 <div class="flex-grow flex gap-2">

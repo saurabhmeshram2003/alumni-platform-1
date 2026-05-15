@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for
+# pyright: ignore [reportMissingImports]
 from flask_login import login_required, current_user
 from extensions import mongo
 from bson import ObjectId

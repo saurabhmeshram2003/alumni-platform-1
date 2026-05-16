@@ -43,15 +43,24 @@ def create_app():
             '\'unsafe-inline\'',
             '\'unsafe-eval\'',
             'https://cdn.jsdelivr.net',
+            'https://cdn.tailwindcss.com',
             'https://fonts.googleapis.com',
             'https://fonts.gstatic.com',
             'https://cdnjs.cloudflare.com',
             'https://code.jquery.com'
         ],
+        'script-src': [
+            '\'self\'',
+            '\'unsafe-inline\'',
+            '\'unsafe-eval\'',
+            'https://cdn.jsdelivr.net',
+            'https://cdn.tailwindcss.com',
+            'https://cdnjs.cloudflare.com'
+        ],
         'img-src': ['\'self\'', 'data:', 'blob:', '*'],
         'font-src': ['\'self\'', 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
     }
-    Talisman(app, content_security_policy=csp, content_security_policy_nonce_in=['script-src'])
+    Talisman(app, content_security_policy=csp)
     
     app.logger.info("App startup complete.")
     

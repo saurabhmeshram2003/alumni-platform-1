@@ -304,6 +304,31 @@ def verify_otp():
 
         # ── SUCCESS — promote pending_user → users ────────────────────
         PendingUser.promote_to_users(email)
+        
+        # Send notifications based on role
+        new_user = User.find_by_email(email)
+        if new_user:
+            try:
+                from routes.notifications import broadcast_to_all, broadcast_to_classmates
+                if new_user.get('role') == 'alumni':
+                    broadcast_to_all(
+                        title="New Alumni Joined",
+                        body=f"Welcome our new alumni {new_user.get('name')} from {new_user.get('department')} ({new_user.get('graduation_year')})!",
+                        link='/alumni',
+                        ntype='info'
+                    )
+                elif new_user.get('role') == 'student':
+                    broadcast_to_classmates(
+                        department=new_user.get('department'),
+                        graduation_year=new_user.get('graduation_year'),
+                        title="New Classmate Joined",
+                        body=f"Your classmate {new_user.get('name')} just joined AlumniConnect!",
+                        link='/alumni',
+                        ntype='info'
+                    )
+            except Exception:
+                pass
+
         session.pop('otp_email', None)
 
         flash('🎉 Email verified! You can now log in.', 'success')

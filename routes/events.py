@@ -39,6 +39,18 @@ def create():
     }
     
     mongo.db.events.insert_one(new_event)
+    
+    try:
+        from routes.notifications import broadcast_to_all
+        broadcast_to_all(
+            title="New event added",
+            body=f"A new event '{new_event['title']}' has been scheduled.",
+            link='/events',
+            ntype='info'
+        )
+    except Exception:
+        pass
+        
     flash('Event created successfully!', 'success')
     return redirect(url_for('events.index'))
 

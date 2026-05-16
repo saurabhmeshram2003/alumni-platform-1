@@ -109,3 +109,53 @@ def unread_count():
         {'user_id': ObjectId(current_user.id), 'read': False}
     )
     return jsonify({'count': count})
+
+def broadcast_to_all(title, body, link='/', ntype='info'):
+    """Create one notification per active user (alumni and students)."""
+    users = mongo.db.users.find(
+        {'is_approved': True, 'verified': True},
+        {'_id': 1}
+    )
+    docs = [
+        {
+            'user_id':    u['_id'],
+            'title':      title,
+            'body':       body,
+            'link':       link,
+            'type':       ntype,
+            'read':       False,
+            'created_at': datetime.utcnow(),
+        }
+        for u in users
+    ]
+    if docs:
+        mongo.db.notifications.insert_many(docs)
+
+def broadcast_to_classmates(department, graduation_year, title, body, link='/', ntype='info'):
+    """Create one notification per student/alumni in the same class/department."""
+    if not department or not graduation_year:
+        return
+        
+    classmates = mongo.db.users.find(
+        {
+            'is_approved': True, 
+            'verified': True,
+            'department': department,
+            'graduation_year': graduation_year
+        },
+        {'_id': 1}
+    )
+    docs = [
+        {
+            'user_id':    c['_id'],
+            'title':      title,
+            'body':       body,
+            'link':       link,
+            'type':       ntype,
+            'read':       False,
+            'created_at': datetime.utcnow(),
+        }
+        for c in classmates
+    ]
+    if docs:
+        mongo.db.notifications.insert_many(docs)

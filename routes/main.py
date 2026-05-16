@@ -46,3 +46,13 @@ def index():
 def coming_soon():
     """Post-registration landing page shown during pre-launch period."""
     return render_template('coming_soon.html')
+
+@main_bp.route('/about')
+def about():
+    """About Us page."""
+    return render_template('about.html')
+
+@main_bp.route('/contact')
+def contact():
+    """Contact Us page."""
+    return render_template('contact.html')

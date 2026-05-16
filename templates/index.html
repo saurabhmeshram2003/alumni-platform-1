@@ -1,378 +1,299 @@
 {% extends 'base.html' %}
-{% block title %}MGM's Alumni Platform – Home{% endblock %}
+{% block title %}AlumniConnect – Connect, Mentor, Grow{% endblock %}
 
 {% block content %}
-<div class="flex flex-col">
+<div class="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
 
-  <!-- ═══════════════ HERO ═══════════════ -->
-  <section class="relative overflow-hidden min-h-[90vh] flex items-center"
-           style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 70%, #1e1b4b 100%);">
-
-    <!-- Animated blobs -->
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-20 blur-3xl animate-pulse"
-           style="background:radial-gradient(circle, #818cf8, #a78bfa);"></div>
-      <div class="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-20 blur-3xl animate-pulse"
-           style="background:radial-gradient(circle, #6366f1, #8b5cf6); animation-delay:1.5s;"></div>
-      <div class="absolute top-1/3 left-1/2 w-64 h-64 rounded-full opacity-10 blur-3xl animate-pulse"
-           style="background:#c4b5fd; animation-delay:0.8s;"></div>
+  <!-- ==============================================
+       1. HERO SECTION
+       ============================================== -->
+  <section class="relative overflow-hidden pt-20 pb-32 lg:pt-32 lg:pb-40 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+    <!-- Background Elements -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none opacity-30 dark:opacity-20 z-0">
+      <div class="absolute -top-32 -left-32 w-96 h-96 bg-primary rounded-full blur-[100px] opacity-40"></div>
+      <div class="absolute top-32 -right-32 w-[500px] h-[500px] bg-secondary rounded-full blur-[120px] opacity-30"></div>
+      <div class="absolute -bottom-40 left-1/2 w-80 h-80 bg-accent rounded-full blur-[100px] opacity-20"></div>
     </div>
+    
+    <!-- Grid Pattern -->
+    <div class="absolute inset-0 z-0" style="background-image: radial-gradient(rgba(107, 114, 128, 0.2) 1px, transparent 1px); background-size: 30px 30px;"></div>
 
-    <!-- Grid pattern overlay -->
-    <div class="absolute inset-0 opacity-5"
-         style="background-image:linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px);background-size:40px 40px;"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 mb-8 shadow-sm animate-fade-in-up">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+        </span>
+        <span class="text-sm font-semibold text-primary dark:text-indigo-300">The Official MGM Alumni Network</span>
+      </div>
 
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-      <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-8 leading-tight animate-fade-in-up" style="animation-delay: 0.1s;">
+        Connect. Mentor. <br class="hidden sm:block">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-secondary">Succeed Together.</span>
+      </h1>
 
-        <!-- Left: Text -->
-        <div class="text-center lg:text-left">
-          <!-- Badge -->
-          <div class="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold mb-8 shadow-lg"
-               style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#c7d2fe; backdrop-filter:blur(8px);">
-            <span class="relative flex h-2.5 w-2.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400"></span>
-            </span>
-            MGM College of Engineering, Nanded
+      <p class="mt-4 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style="animation-delay: 0.2s;">
+        Join thousands of verified MGM graduates. Unlock exclusive job opportunities, find industry mentors, and give back to the community that built you.
+      </p>
+
+      <div class="flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in-up" style="animation-delay: 0.3s;">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('dashboard.index') }}" class="w-full sm:w-auto px-8 py-4 rounded-full bg-primary hover:bg-indigo-700 text-white font-bold text-lg shadow-xl shadow-primary/30 transition-all duration-300 hover:-translate-y-1">
+          Go to Dashboard <i class="fas fa-arrow-right ml-2"></i>
+        </a>
+        <a href="{{ url_for('alumni.directory') }}" class="w-full sm:w-auto px-8 py-4 rounded-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold text-lg shadow-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:-translate-y-1">
+          Browse Directory <i class="fas fa-users ml-2"></i>
+        </a>
+        {% else %}
+        <a href="{{ url_for('auth.register') }}" class="w-full sm:w-auto px-8 py-4 rounded-full bg-primary hover:bg-indigo-700 text-white font-bold text-lg shadow-xl shadow-primary/30 transition-all duration-300 hover:-translate-y-1">
+          Join the Network <i class="fas fa-user-plus ml-2"></i>
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="w-full sm:w-auto px-8 py-4 rounded-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold text-lg shadow-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:-translate-y-1">
+          Member Login <i class="fas fa-sign-in-alt ml-2"></i>
+        </a>
+        {% endif %}
+      </div>
+      
+      <!-- Trust Indicators -->
+      <div class="mt-12 flex flex-wrap justify-center gap-8 opacity-70 animate-fade-in-up" style="animation-delay: 0.4s;">
+        <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium">
+          <i class="fas fa-shield-check text-green-500"></i> Verified Profiles
+        </div>
+        <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium">
+          <i class="fas fa-lock text-gray-500"></i> Secure Data
+        </div>
+        <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium">
+          <i class="fas fa-university text-blue-500"></i> Official Platform
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================================
+       2. STATISTICS SECTION
+       ============================================== -->
+  <section class="py-12 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 relative z-20 -mt-10 sm:-mt-16 mx-4 sm:mx-6 lg:mx-auto max-w-6xl rounded-3xl shadow-2xl">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-100 dark:divide-gray-800 text-center">
+      <div class="p-4 transition-transform hover:scale-105">
+        <h3 class="text-4xl sm:text-5xl font-extrabold text-primary mb-2">{{ stats.get('alumni_count', 50)|string + '+' }}</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Registered Alumni</p>
+      </div>
+      <div class="p-4 transition-transform hover:scale-105">
+        <h3 class="text-4xl sm:text-5xl font-extrabold text-secondary mb-2">{{ stats.get('jobs_count', 0)|string + '+' }}</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Jobs Posted</p>
+      </div>
+      <div class="p-4 transition-transform hover:scale-105">
+        <h3 class="text-4xl sm:text-5xl font-extrabold text-accent mb-2">{{ stats.get('events_count', 0)|string }}</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">College Events</p>
+      </div>
+      <div class="p-4 transition-transform hover:scale-105">
+        <h3 class="text-4xl sm:text-5xl font-extrabold text-blue-500 mb-2">10+</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Years of Legacy</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================================
+       3. FEATURES OVERVIEW (SaaS Style)
+       ============================================== -->
+  <section class="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900/50">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-primary font-bold tracking-wide uppercase text-sm mb-2">Everything you need</h2>
+        <h3 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">A Complete Ecosystem for Growth</h3>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group">
+          <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/40 text-primary flex items-center justify-center text-2xl mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
+            <i class="fas fa-users"></i>
           </div>
-
-          <h1 class="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6">
-            Where Alumni
-            <span class="block mt-1"
-                  style="background:linear-gradient(90deg,#a5b4fc,#f0abfc,#fbcfe8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
-              Connect &amp; Inspire
-            </span>
-          </h1>
-
-          <p class="text-base sm:text-lg text-indigo-200 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">
-            Join <strong class="text-white">{{ stats.get('alumni_count', 54) }}+ verified alumni</strong> from MGM Nanded.
-            Find mentors, explore job opportunities, and stay connected with your college community.
+          <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Global Directory</h4>
+          <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+            Find and connect with fellow MGM alumni across the globe. Filter by industry, batch, or company.
           </p>
-
-          <!-- CTA Buttons -->
-          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            {% if current_user.is_authenticated %}
-            <a href="{{ url_for('dashboard.index') }}" id="hero-dashboard-btn"
-               class="group inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 py-4 rounded-full shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-105"
-               style="background:#ffffff; color:#312e81;">
-              <i class="fas fa-th-large" style="color:#6366f1;"></i>
-              Go to Dashboard
-              <i class="fas fa-arrow-right text-indigo-400 group-hover:translate-x-1 transition-transform text-sm"></i>
-            </a>
-            <a href="{{ url_for('alumni.directory') }}" id="hero-alumni-btn"
-               class="inline-flex items-center justify-center gap-2 font-semibold text-base sm:text-lg px-8 py-4 rounded-full transition-all duration-300 hover:-translate-y-1"
-               style="border:2px solid rgba(255,255,255,0.35); color:#fff; backdrop-filter:blur(6px);">
-              <i class="fas fa-users"></i>
-              Browse Alumni
-            </a>
-            {% else %}
-            <a href="{{ url_for('auth.register') }}" id="hero-register-btn"
-               class="group inline-flex items-center justify-center gap-3 font-bold text-base sm:text-lg px-8 py-4 rounded-full shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-105"
-               style="background:#ffffff; color:#312e81;">
-              <i class="fas fa-user-plus" style="color:#6366f1;"></i>
-              Join the Network
-              <i class="fas fa-arrow-right text-indigo-400 group-hover:translate-x-1 transition-transform text-sm"></i>
-            </a>
-            <a href="{{ url_for('auth.login') }}" id="hero-login-btn"
-               class="inline-flex items-center justify-center gap-2 font-semibold text-base sm:text-lg px-8 py-4 rounded-full transition-all duration-300 hover:-translate-y-1"
-               style="border:2px solid rgba(255,255,255,0.35); color:#fff; backdrop-filter:blur(6px);">
-              <i class="fas fa-sign-in-alt"></i>
-              Already a member? Log In
-            </a>
-            {% endif %}
-          </div>
-
-          <!-- Trust bar -->
-          <div class="mt-10 flex flex-wrap items-center gap-6 justify-center lg:justify-start">
-            <div class="flex items-center gap-2 text-indigo-300 text-sm font-medium">
-              <i class="fas fa-shield-alt text-green-400"></i> Email-verified accounts
-            </div>
-            <div class="flex items-center gap-2 text-indigo-300 text-sm font-medium">
-              <i class="fas fa-lock text-yellow-400"></i> Secure &amp; private
-            </div>
-            <div class="flex items-center gap-2 text-indigo-300 text-sm font-medium">
-              <i class="fas fa-university text-blue-400"></i> Official MGM platform
-            </div>
-          </div>
         </div>
 
-        <!-- Right: College image + stats -->
-        <div class="flex flex-col gap-5">
-          <!-- College image card -->
-          <div class="relative rounded-3xl overflow-hidden shadow-2xl" style="border:1px solid rgba(255,255,255,0.15);">
-            <img src="{{ url_for('static', filename='images/mgmcen_banner.png') }}"
-                 alt="MGM College of Engineering Nanded"
-                 class="w-full object-cover"
-                 style="height:260px; object-position:center;"
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <!-- Fallback gradient -->
-            <div style="display:none; height:260px; background:linear-gradient(135deg,#4338ca,#7c3aed); align-items:center; justify-content:center; flex-direction:column; gap:12px;">
-              <i class="fas fa-university text-white text-5xl opacity-60"></i>
-              <p class="text-indigo-200 font-semibold text-lg">MGM College of Engineering</p>
-              <p class="text-indigo-300 text-sm">Nanded, Maharashtra</p>
-            </div>
-            <!-- Overlay badge -->
-            <div class="absolute bottom-0 inset-x-0 px-5 py-3"
-                 style="background:linear-gradient(to top, rgba(0,0,0,0.7), transparent);">
-              <p class="text-white font-semibold text-sm">MGM College of Engineering — Nanded Campus</p>
-              <p class="text-indigo-300 text-xs">Established 1994 · NAAC Accredited</p>
-            </div>
+        <!-- Feature 2 -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/40 text-secondary flex items-center justify-center text-2xl mb-6 group-hover:scale-110 group-hover:bg-secondary group-hover:text-white transition-all">
+            <i class="fas fa-briefcase"></i>
           </div>
-
-          <!-- Stat cards -->
-          <div class="grid grid-cols-2 gap-4">
-            {% for val, label, icon in [
-              (stats.get('alumni_count', 54)|string + '+', 'Verified Alumni', 'fa-user-graduate'),
-              (stats.get('jobs_count', 0)|string, 'Job Openings', 'fa-briefcase'),
-              (stats.get('events_count', 0)|string, 'Events', 'fa-calendar-alt'),
-              ('10+', 'Years of Legacy', 'fa-award')
-            ] %}
-            <div class="rounded-2xl p-5 text-center transition-all duration-300 hover:-translate-y-1"
-                 style="background:rgba(255,255,255,0.09); border:1px solid rgba(255,255,255,0.18); backdrop-filter:blur(6px);">
-              <div class="text-3xl font-extrabold text-white mb-1">{{ val }}</div>
-              <div class="text-indigo-300 text-xs font-medium mb-2">{{ label }}</div>
-              <i class="fas {{ icon }} text-indigo-400 text-xl opacity-70"></i>
-            </div>
-            {% endfor %}
-          </div>
+          <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Exclusive Job Board</h4>
+          <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+            Access internal referrals and exclusive job postings shared directly by alumni working in top companies.
+          </p>
         </div>
 
+        <!-- Feature 3 -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group">
+          <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-900/40 text-accent flex items-center justify-center text-2xl mb-6 group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all">
+            <i class="fas fa-chalkboard-teacher"></i>
+          </div>
+          <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Mentorship Hub</h4>
+          <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+            Request guidance from experienced seniors or volunteer to mentor fresh graduates and students.
+          </p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════ FEATURES ═══════════════ -->
-  <section class="bg-gray-50 dark:bg-gray-900 py-20 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-14">
-        <span class="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4"
-              style="background:#ede9fe; color:#5b21b6;">Platform Features</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
-          Everything You Need in One Place
-        </h2>
-        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-base sm:text-lg">
-          From mentorship to job postings, the MGM alumni network has you covered.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for icon, hex_bg, hex_ico, title, desc in [
-          ('fa-users',              '#ede9fe','#7c3aed', 'Alumni Directory',    'Search and connect with 54+ verified MGM graduates across industries worldwide.'),
-          ('fa-chalkboard-teacher', '#d1fae5','#059669', 'Mentorship',          'Request a mentor or volunteer to guide current students on their career path.'),
-          ('fa-briefcase',          '#ede9fe','#6d28d9', 'Job Board',           'Exclusive job postings shared by alumni — for students and fellow graduates.'),
-          ('fa-calendar-check',     '#fef3c7','#d97706', 'Events',              'Stay updated on reunions, seminars, and networking events from your alumni body.'),
-          ('fa-book-open',          '#fee2e2','#dc2626', 'Alumni Stories',      'Read inspiring success stories from MGM graduates making a difference globally.'),
-          ('fa-shield-alt',         '#cffafe','#0891b2', 'Verified & Secure',   'Email OTP verification ensures every account is genuine and your data is safe.')
-        ] %}
-        <div class="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
-               style="background:{{ hex_bg }};">
-            <i class="fas {{ icon }} text-xl" style="color:{{ hex_ico }};"></i>
+  <!-- ==============================================
+       4. AI RESUME ANALYZER (Highlight Feature)
+       ============================================== -->
+  <section class="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto">
+      <div class="bg-gradient-to-br from-gray-900 to-indigo-900 rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <div class="grid lg:grid-cols-2">
+          <div class="p-10 sm:p-16 flex flex-col justify-center">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-bold uppercase tracking-widest mb-6 w-fit">
+              <i class="fas fa-robot text-accent"></i> Powered by AI
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-6">
+              AI-Powered Resume Analyzer
+            </h2>
+            <p class="text-indigo-200 text-lg mb-8 leading-relaxed">
+              Get an instant score on your resume. Our AI analyzes your skills, formatting, and impact to help you land your dream job faster. Perfect for upcoming campus placements.
+            </p>
+            <ul class="space-y-4 mb-10">
+              <li class="flex items-center gap-3 text-white font-medium">
+                <i class="fas fa-check-circle text-secondary text-xl"></i> Instant Feedback & Scoring
+              </li>
+              <li class="flex items-center gap-3 text-white font-medium">
+                <i class="fas fa-check-circle text-secondary text-xl"></i> Keyword Optimization
+              </li>
+              <li class="flex items-center gap-3 text-white font-medium">
+                <i class="fas fa-check-circle text-secondary text-xl"></i> ATS Friendly Checks
+              </li>
+            </ul>
+            <div>
+              <a href="https://ai-based-resume-analyzer-m7n7.onrender.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-gray-900 font-bold hover:bg-gray-100 transition-all duration-300 hover:-translate-y-1 shadow-lg">
+                Try Analyzer Free <i class="fas fa-external-link-alt text-sm"></i>
+              </a>
+            </div>
           </div>
-          <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-base">{{ title }}</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{{ desc }}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════ GALLERY (UNTOUCHED) ═══════════════ -->
-  <section class="bg-white dark:bg-gray-800 py-20 px-4 sm:px-6 lg:px-8 border-t border-gray-100 dark:border-gray-700">
-    <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-14">
-        <span class="inline-block bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">Campus Memories</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">Our Gallery</h2>
-        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-          Relive the best moments from campus life, alumni meets, and college events.
-        </p>
-      </div>
-
-      <!-- Gallery Carousel Card -->
-      <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900
-                  rounded-3xl shadow-2xl border border-indigo-100 dark:border-indigo-900/40 overflow-hidden" x-data="{
-             slides: [
-               {
-                 type: 'video',
-                 src: '{{ url_for('static', filename='videos/YTDown_YouTube_Mahatma-Gandhi-Mission-s-College-of-Engi_Media_4oOWhogT4qc_002_720p.mp4') }}',
-                 caption: 'MGM College of Engineering — Nanded Campus Tour'
-               },
-               {
-                 type: 'image',
-                 src: '{{ url_for('static', filename='images/mgmcen_banner.png') }}',
-                 caption: 'MGM College of Engineering — Nanded Campus'
-               },
-               {
-                 type: 'image',
-                 src: '{{ url_for('static', filename='images/college-banner.png') }}',
-                 caption: 'Main College Building — A Legacy of Excellence'
-               }
-             ],
-             activeIdx: 0,
-             autoplay: true,
-             interval: null,
-             startAutoplay() {
-               this.interval = setInterval(() => {
-                 if (this.autoplay && this.slides[this.activeIdx].type !== 'video') {
-                   this.activeIdx = (this.activeIdx + 1) % this.slides.length;
-                 }
-               }, 5000);
-             },
-             prev() { this.activeIdx = (this.activeIdx - 1 + this.slides.length) % this.slides.length; },
-             next() { this.activeIdx = (this.activeIdx + 1) % this.slides.length; }
-           }" x-init="startAutoplay()">
-
-        <!-- Slide container -->
-        <div class="relative h-64 sm:h-96 lg:h-[480px] bg-gray-900 overflow-hidden">
-          <template x-for="(slide, idx) in slides" :key="idx">
-            <div x-show="activeIdx === idx" x-transition:enter="transition ease-in-out duration-700"
-              x-transition:enter-start="opacity-0 scale-105" x-transition:enter-end="opacity-100 scale-100"
-              x-transition:leave="transition ease-in-out duration-500" x-transition:leave-start="opacity-100 scale-100"
-              x-transition:leave-end="opacity-0 scale-95" class="absolute inset-0">
-              <template x-if="slide.type === 'image'">
-                <img :src="slide.src" :alt="slide.caption" class="w-full h-full object-cover object-center" loading="lazy">
-              </template>
-              <template x-if="slide.type === 'video'">
-                <video :src="slide.src" class="w-full h-full object-cover" autoplay muted loop playsinline></video>
-              </template>
-              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-6 py-5">
-                <p class="text-white font-semibold text-sm sm:text-base drop-shadow" x-text="slide.caption"></p>
+          <div class="relative hidden lg:block bg-black/20 p-12">
+            <!-- Decorative Mockup Element -->
+            <div class="absolute inset-0 flex items-center justify-center p-12">
+              <div class="w-full h-full bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary"></div>
+                <div class="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
+                  <div class="h-4 w-32 bg-white/20 rounded"></div>
+                  <div class="h-8 w-16 bg-accent rounded-full flex items-center justify-center text-white font-bold text-sm">92%</div>
+                </div>
+                <div class="space-y-4">
+                  <div class="h-3 w-full bg-white/10 rounded"></div>
+                  <div class="h-3 w-5/6 bg-white/10 rounded"></div>
+                  <div class="h-3 w-4/6 bg-white/10 rounded"></div>
+                </div>
+                <div class="mt-8 grid grid-cols-2 gap-4">
+                  <div class="h-20 bg-green-500/20 border border-green-500/30 rounded-xl p-4">
+                     <div class="h-3 w-16 bg-green-500/50 rounded mb-2"></div>
+                     <div class="h-2 w-full bg-green-500/30 rounded"></div>
+                  </div>
+                  <div class="h-20 bg-blue-500/20 border border-blue-500/30 rounded-xl p-4">
+                    <div class="h-3 w-16 bg-blue-500/50 rounded mb-2"></div>
+                     <div class="h-2 w-full bg-blue-500/30 rounded"></div>
+                  </div>
+                </div>
               </div>
             </div>
-          </template>
-
-          <button @click="prev(); autoplay=false" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
-                         bg-black/40 hover:bg-black/70 text-white flex items-center justify-center
-                         transition-all duration-200 hover:scale-110 focus:outline-none z-10" aria-label="Previous">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <button @click="next(); autoplay=false" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
-                         bg-black/40 hover:bg-black/70 text-white flex items-center justify-center
-                         transition-all duration-200 hover:scale-110 focus:outline-none z-10" aria-label="Next">
-            <i class="fas fa-chevron-right"></i>
-          </button>
-
-          <div class="absolute bottom-4 right-6 flex gap-2 z-10">
-            <template x-for="(slide, idx) in slides" :key="idx">
-              <button @click="activeIdx = idx; autoplay=false"
-                :class="activeIdx === idx ? 'bg-white w-6' : 'bg-white/50 w-2'"
-                class="h-2 rounded-full transition-all duration-300 focus:outline-none"
-                :aria-label="'Go to slide ' + (idx+1)"></button>
-            </template>
           </div>
-        </div>
-
-        <!-- Bottom info bar -->
-        <div class="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-              <i :class="slides[activeIdx].type === 'video' ? 'fa-play-circle' : 'fa-images'"
-                class="fas text-indigo-600 dark:text-indigo-400 text-sm"></i>
-            </span>
-            <div>
-              <p class="font-semibold text-gray-900 dark:text-white text-sm" x-text="slides[activeIdx].caption"></p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                <span x-text="activeIdx + 1"></span> / <span x-text="slides.length"></span>
-                &nbsp;·&nbsp; MGM College of Engineering
-              </p>
-            </div>
-          </div>
-          <button @click="autoplay = !autoplay"
-            :class="autoplay ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'"
-            class="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full transition-all">
-            <i :class="autoplay ? 'fa-pause' : 'fa-play'" class="fas text-xs"></i>
-            <span x-text="autoplay ? 'Pause' : 'Play'"></span>
-          </button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════ FEATURED ALUMNI ═══════════════ -->
+  <!-- ==============================================
+       5. FEATURED ALUMNI
+       ============================================== -->
   {% if featured_alumni %}
-  <section class="bg-gray-50 dark:bg-gray-900 py-20 px-4 sm:px-6 lg:px-8 border-t border-gray-100 dark:border-gray-700">
-    <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-14">
-        <span class="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4"
-              style="background:#ede9fe; color:#5b21b6;">Our Achievers</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">Featured Alumni</h2>
-        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-          Meet some of our outstanding graduates making waves in their fields.
-        </p>
+  <section class="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800/50">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col sm:flex-row justify-between items-end mb-12 gap-4">
+        <div>
+          <h2 class="text-primary font-bold tracking-wide uppercase text-sm mb-2">Success Stories</h2>
+          <h3 class="text-3xl font-extrabold text-gray-900 dark:text-white">Our Outstanding Alumni</h3>
+        </div>
+        <a href="{{ url_for('alumni.directory') }}" class="text-primary font-semibold hover:underline hidden sm:inline-flex items-center gap-1">
+          View All <i class="fas fa-arrow-right text-xs"></i>
+        </a>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for alumni in featured_alumni %}
-        <div class="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center">
-          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-4 overflow-hidden ring-4 ring-indigo-100 dark:ring-indigo-900/50 group-hover:ring-indigo-300 transition-all">
-            {% if alumni.get('profile_image') and alumni.profile_image != 'default.png' %}
-            <img src="{{ url_for('static', filename='uploads/' + alumni.profile_image) }}" alt="{{ alumni.name }}"
-              class="w-full h-full object-cover">
-            {% else %}
-            <div class="w-full h-full flex items-center justify-center"
-                 style="background:linear-gradient(135deg,#818cf8,#a78bfa);">
-              <span class="text-white font-bold text-xl sm:text-2xl">{{ alumni.name[0] | upper }}</span>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-indigo-100 dark:border-gray-600 group-hover:border-primary transition-colors">
+              {% if alumni.get('profile_image') and alumni.profile_image != 'default.png' %}
+              <img src="{{ url_for('static', filename='uploads/' + alumni.profile_image) }}" alt="{{ alumni.name }}" class="w-full h-full object-cover">
+              {% else %}
+              <div class="w-full h-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-bold text-xl">
+                {{ alumni.name[0] | upper }}
+              </div>
+              {% endif %}
             </div>
-            {% endif %}
+            <div>
+              <h4 class="font-bold text-gray-900 dark:text-white truncate">{{ alumni.name }}</h4>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Class of {{ alumni.get('class_batch', alumni.get('graduation_year', 'N/A')) }}</p>
+            </div>
           </div>
-          <h3 class="font-bold text-gray-900 dark:text-white mb-1 text-sm sm:text-base truncate">{{ alumni.name }}</h3>
-          <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium mb-1 truncate">
-            {{ alumni.get('current_working_company', alumni.get('company', 'MGM Alumni')) | truncate(35) }}
-          </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Batch of {{ alumni.get('class_batch', alumni.get('graduation_year', '—')) }}</p>
+          <div class="mb-4">
+            <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+              <i class="fas fa-briefcase text-gray-400 mr-1"></i> {{ alumni.get('current_working_company', alumni.get('company', 'Professional')) | truncate(35) }}
+            </p>
+          </div>
           {% if current_user.is_authenticated %}
-          <a href="{{ url_for('alumni.view_profile', user_id=alumni._id | string) }}"
-            class="mt-3 inline-block text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-            View Profile →
+          <a href="{{ url_for('alumni.view_profile', user_id=alumni._id | string) }}" class="block w-full py-2 text-center text-sm font-semibold text-primary bg-indigo-50 dark:bg-indigo-900/30 rounded-lg hover:bg-primary hover:text-white transition-colors">
+            View Profile
           </a>
           {% endif %}
         </div>
         {% endfor %}
       </div>
-      <div class="text-center mt-10">
-        {% if current_user.is_authenticated %}
-        <a href="{{ url_for('alumni.directory') }}" id="view-all-alumni-btn"
-          class="inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-full shadow-lg transition-all duration-300 hover:-translate-y-1"
-          style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
-          <i class="fas fa-users"></i> View All Alumni
+      <div class="mt-8 text-center sm:hidden">
+        <a href="{{ url_for('alumni.directory') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-semibold shadow-sm">
+          View All Alumni <i class="fas fa-arrow-right text-xs"></i>
         </a>
-        {% else %}
-        <a href="{{ url_for('auth.login') }}" id="login-to-view-btn"
-          class="inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-full shadow-lg transition-all duration-300 hover:-translate-y-1"
-          style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
-          <i class="fas fa-sign-in-alt"></i> Log in to View All Alumni
-        </a>
-        {% endif %}
       </div>
     </div>
   </section>
   {% endif %}
 
-  <!-- ═══════════════ CTA STRIP ═══════════════ -->
+  <!-- ==============================================
+       6. CTA SECTION
+       ============================================== -->
   {% if not current_user.is_authenticated %}
-  <section class="py-16 px-4 text-center"
-           style="background:linear-gradient(135deg,#4338ca 0%,#6d28d9 50%,#4338ca 100%);">
-    <div class="max-w-2xl mx-auto">
-      <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest mb-6"
-           style="background:rgba(255,255,255,0.15); color:#c7d2fe;">
-        <i class="fas fa-graduation-cap"></i> MGM Nanded Alumni Network
-      </div>
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-4">
-        Ready to join your community?
-      </h2>
-      <p class="text-indigo-200 mb-8 text-base sm:text-lg max-w-lg mx-auto">
-        Registration takes less than 2 minutes. Connect with fellow MGM graduates today.
+  <section class="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary to-indigo-900"></div>
+    <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMGgyMHYyMEgwem0xMCAxMGgxMHYxMEgxMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+')]"></div>
+    
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <h2 class="text-4xl sm:text-5xl font-extrabold text-white mb-6">Start Building Your Network</h2>
+      <p class="text-xl text-indigo-100 mb-10 max-w-2xl mx-auto">
+        Join hundreds of successful alumni. Mentorship, jobs, and community are just a few clicks away.
       </p>
-      <a href="{{ url_for('auth.register') }}" id="cta-register-btn"
-        class="inline-flex items-center gap-2 font-bold px-10 py-4 rounded-full shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105"
-        style="background:#ffffff; color:#4338ca;">
-        <i class="fas fa-user-plus"></i>
-        Join the Network
+      <a href="{{ url_for('auth.register') }}" class="inline-flex items-center justify-center gap-2 px-10 py-5 rounded-full bg-white text-primary hover:bg-gray-50 font-bold text-lg shadow-2xl transition-all duration-300 hover:scale-105">
+        Create Your Free Account <i class="fas fa-arrow-right"></i>
       </a>
-      <p class="mt-4 text-indigo-300 text-xs">No cost. Verified college community only.</p>
+      <p class="mt-6 text-indigo-200 text-sm font-medium">Takes less than 2 minutes. College ID required.</p>
     </div>
   </section>
   {% endif %}
 
 </div>
+
+<!-- Add subtle animations using standard tailwind via script or custom styles inline -->
+<style>
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+  }
+</style>
 {% endblock %}

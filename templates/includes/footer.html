@@ -1,19 +1,58 @@
-<footer class="bg-gray-900 text-white py-8 transition-colors duration-200 mt-auto border-t border-gray-800">
-    <div class="container mx-auto px-4 text-center md:text-left flex flex-col md:flex-row justify-between items-center">
-        <div class="mb-4 md:mb-0">
-            <span class="text-2xl font-bold flex items-center justify-center md:justify-start gap-2 text-gray-100">
-                <i class="fas fa-graduation-cap text-accent"></i>
-                AlumniPlatform
-            </span>
-            <p class="text-gray-400 text-sm mt-2">Connect. Grow. Inspire. Join the community today.</p>
+<footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8 transition-colors duration-200 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div class="col-span-1 md:col-span-2">
+                <span class="text-2xl font-extrabold flex items-center gap-2 text-primary dark:text-white mb-4">
+                    <i class="fas fa-graduation-cap text-secondary text-3xl"></i>
+                    AlumniConnect
+                </span>
+                <p class="text-gray-500 dark:text-gray-400 text-base max-w-sm leading-relaxed mb-6">
+                    The official alumni platform for MGM College of Engineering. Connect, mentor, grow, and build lifelong relationships.
+                </p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white transition-all duration-300">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/company/mahatma-gandhi-mission-s-college-of-engineering-and-technology" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white transition-all duration-300">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white transition-all duration-300">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white transition-all duration-300">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase text-sm tracking-wider">Quick Links</h4>
+                <ul class="space-y-3">
+                    <li><a href="{{ url_for('main.index') }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">Home</a></li>
+                    <li><a href="{{ url_for('alumni.directory') }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">Alumni Directory</a></li>
+                    <li><a href="{{ url_for('jobs.index') }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">Jobs Board</a></li>
+                    <li><a href="{{ url_for('stories.index') }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">Success Stories</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase text-sm tracking-wider">Support</h4>
+                <ul class="space-y-3">
+                    <li><a href="{{ url_for('main.about') }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">About Us</a></li>
+                    <li><a href="{{ url_for('main.contact') }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">Contact Us</a></li>
+                    <li><a href="#" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-secondary transition-colors text-sm">Terms of Service</a></li>
+                </ul>
+            </div>
         </div>
 
-        <div class="flex gap-6 mb-4 md:mb-0 text-gray-400">
-            <a href="#" class="hover:text-white transition-colors"><i class="fab fa-twitter text-xl"></i></a>
-            <a href="https://www.linkedin.com/company/mahatma-gandhi-mission-s-college-of-engineering-and-technology"
-                class="hover:text-white transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
-            <a href="#" class="hover:text-white transition-colors"><i class="fab fa-facebook text-xl"></i></a>
+        <div class="border-t border-gray-200 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-gray-400 dark:text-gray-500 text-sm text-center md:text-left">
+                &copy; {{ current_year | default(2026) }} AlumniConnect by MGM Students. All rights reserved.
+            </p>
+            <p class="text-gray-400 dark:text-gray-500 text-sm flex items-center gap-1">
+                Made with <i class="fas fa-heart text-red-500"></i> by CSE-B Team
+            </p>
         </div>
     </div>
-
 </footer>

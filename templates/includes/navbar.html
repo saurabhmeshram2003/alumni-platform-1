@@ -35,6 +35,10 @@
 
         {% if current_user.is_authenticated %}
         <!-- Nav links -->
+        <a href="{{ url_for('main.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+          <i class="fas fa-home mr-1 opacity-70"></i>Home
+        </a>
         <a href="{{ url_for('dashboard.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
                     px-3 py-2 rounded-md text-sm font-medium transition-colors">
           <i class="fas fa-th-large mr-1 opacity-70"></i>Dashboard
@@ -51,10 +55,17 @@
                     px-3 py-2 rounded-md text-sm font-medium transition-colors">
           <i class="fas fa-handshake mr-1 opacity-70"></i>Mentorship
         </a>
-
         <a href="{{ url_for('stories.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
                     px-3 py-2 rounded-md text-sm font-medium transition-colors">
           <i class="fas fa-star mr-1 opacity-70"></i>Stories
+        </a>
+        <a href="{{ url_for('main.about') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+          <i class="fas fa-info-circle mr-1 opacity-70"></i>About
+        </a>
+        <a href="{{ url_for('main.contact') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-secondary
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+          <i class="fas fa-envelope mr-1 opacity-70"></i>Contact
         </a>
 
         <!-- Notification Bell -->
@@ -131,6 +142,18 @@
         </a>
 
         {% else %}
+        <a href="{{ url_for('main.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-white
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+          Home
+        </a>
+        <a href="{{ url_for('main.about') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-white
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+          About
+        </a>
+        <a href="{{ url_for('main.contact') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-white
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors">
+          Contact
+        </a>
         <a href="{{ url_for('auth.login') }}" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-white
                     px-3 py-2 rounded-md text-sm font-medium transition-colors">
           Log in
@@ -182,6 +205,8 @@
     style="display: none;">
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       {% if current_user.is_authenticated %}
+      <a href="{{ url_for('main.index') }}"
+        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Home</a>
       <a href="{{ url_for('dashboard.index') }}"
         class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Dashboard</a>
       <a href="{{ url_for('alumni.directory') }}"
@@ -190,14 +215,22 @@
         class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Jobs</a>
       <a href="{{ url_for('mentorship.index') }}"
         class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Mentorship</a>
-
       <a href="{{ url_for('stories.index') }}"
-        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Success
-        Stories</a>
+        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Success Stories</a>
+      <a href="{{ url_for('main.about') }}"
+        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">About</a>
+      <a href="{{ url_for('main.contact') }}"
+        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Contact</a>
       <a href="{{ url_for('auth.logout') }}"
         class="block px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800">Sign
         out</a>
       {% else %}
+      <a href="{{ url_for('main.index') }}"
+        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Home</a>
+      <a href="{{ url_for('main.about') }}"
+        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">About</a>
+      <a href="{{ url_for('main.contact') }}"
+        class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Contact</a>
       <a href="{{ url_for('auth.login') }}"
         class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Log
         in</a>

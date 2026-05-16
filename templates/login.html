@@ -7,7 +7,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth-container" style="margin-top: 4rem;">
+<div class="auth-wrapper">
+<div class="auth-container">
     <div class="auth-header">
         <h1>Welcome Back</h1>
         <p>Login to your account to continue</p>
@@ -45,6 +46,7 @@
         <br><br>
         <a href="{{ url_for('main.index') }}" style="color: var(--text-muted);">&larr; Back to Home</a>
     </div>
+</div>
 </div>
 {% endblock %}
 

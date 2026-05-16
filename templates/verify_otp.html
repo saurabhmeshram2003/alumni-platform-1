@@ -43,21 +43,21 @@
         .otp-box {
             width: 52px;
             height: 60px;
-            border: 2px solid var(--border-color);
+            border: 2px solid #D1D5DB;
             border-radius: 10px;
             text-align: center;
             font-size: 1.75rem;
             font-weight: 700;
-            color: var(--text-color);
+            color: #111827;
             background: #fff;
             transition: border-color 0.2s, box-shadow 0.2s;
-            caret-color: var(--primary-color);
+            caret-color: #4F46E5;
             outline: none;
         }
 
         .otp-box:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px var(--focus-ring);
+            border-color: #4F46E5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
 
         .otp-box.filled {
@@ -83,18 +83,18 @@
         .otp-timer {
             text-align: center;
             font-size: 0.85rem;
-            color: var(--text-muted);
+            color: #6B7280;
             margin-bottom: 1.5rem;
             min-height: 22px;
         }
 
         .otp-timer .time-left {
             font-weight: 600;
-            color: var(--primary-color);
+            color: #4F46E5;
         }
 
         .otp-timer.expired .time-left {
-            color: var(--error-color);
+            color: #EF4444;
         }
 
         /* Resend section */
@@ -102,19 +102,19 @@
             text-align: center;
             margin-top: 1.25rem;
             padding-top: 1.25rem;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid #E5E7EB;
         }
 
         .resend-section p {
             font-size: 0.875rem;
-            color: var(--text-muted);
+            color: #6B7280;
             margin-bottom: 0.75rem;
         }
 
         .btn-outline {
             background: #fff;
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
+            border: 2px solid #4F46E5;
+            color: #4F46E5;
             font-weight: 600;
         }
 
@@ -133,7 +133,7 @@
         #resendCooldown {
             font-size: 0.8rem;
             font-weight: 400;
-            color: var(--text-muted);
+            color: #9CA3AF;
             display: block;
             margin-top: 6px;
         }
@@ -175,14 +175,15 @@
 {% endblock %}
 
 {% block content %}
-    <div class="auth-container">
-<div class="auth-card">
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-16 px-4">
+  <div class="w-full max-w-md">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 sm:p-10">
 
         <!-- Header -->
-        <div class="auth-header">
+        <div class="text-center mb-8">
             <div class="otp-icon" aria-hidden="true">📧</div>
-            <h1>Verify Your Email</h1>
-            <p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Verify Your Email</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">
                 We sent a 6-digit OTP to<br>
                 <span class="email-badge">{{ email }}</span>
             </p>
@@ -245,10 +246,13 @@
         </div>
 
         <!-- Footer -->
-        <div class="auth-footer">
-            <a href="{{ url_for('auth.login') }}">← Back to Login</a>
+        <div class="text-center mt-6">
+            <a href="{{ url_for('auth.login') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1"><i class="fas fa-arrow-left text-xs"></i> Back to Login</a>
         </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 

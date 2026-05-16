@@ -59,35 +59,16 @@
 
 /* Dark Mode Variables */
 .dark {
-    --gray-50: #111827;
-    --gray-100: #1F2937;
-    --gray-200: #374151;
-    --gray-300: #4B5563;
-    --gray-400: #6B7280;
-    --gray-500: #9CA3AF;
-    --gray-600: #D1D5DB;
-    --gray-700: #E5E7EB;
-    --gray-800: #F3F4F6;
-    --gray-900: #F9FAFB;
+    --primary-color: #818CF8;
 }
 
-/* ---------- Global Styles ---------- */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* Global Styles - Scoped to not override Tailwind */
 html {
     scroll-behavior: smooth;
 }
 
 body {
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
-    color: var(--gray-700);
-    background: var(--gray-50);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -122,7 +103,6 @@ body {
 h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     line-height: 1.25;
-    color: var(--gray-900);
 }
 
 a {
@@ -157,15 +137,21 @@ a {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    background: #4F46E5;
     color: white;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    margin-top: 0.5rem;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(79,70,229,0.3);
+    background: #4338CA;
 }
 
 .btn-secondary {
@@ -220,18 +206,18 @@ a {
     margin-bottom: 0.5rem;
     font-weight: 500;
     font-size: 0.875rem;
-    color: var(--gray-700);
+    color: #374151;
 }
 
 .form-control {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--gray-200);
+    border: 1px solid #D1D5DB;
     border-radius: var(--radius-md);
     font-size: 0.875rem;
     transition: all var(--transition-fast);
     background: white;
-    color: var(--gray-900);
+    color: #111827;
 }
 
 .form-control:focus {
@@ -241,9 +227,9 @@ a {
 }
 
 .dark .form-control {
-    background: var(--gray-800);
-    border-color: var(--gray-700);
-    color: var(--gray-100);
+    background: #1F2937;
+    border-color: #4B5563;
+    color: #F9FAFB;
 }
 
 textarea.form-control {
@@ -273,8 +259,8 @@ textarea.form-control {
 }
 
 .dark .auth-card {
-    background: var(--gray-800);
-    border-color: var(--gray-700);
+    background: #1F2937;
+    border-color: #374151;
 }
 
 .auth-header {

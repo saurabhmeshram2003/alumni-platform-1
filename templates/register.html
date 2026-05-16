@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-    <div class="auth-container register" style="margin-top: 4rem;">
+    <div class="auth-wrapper"><div class="auth-container register" style="margin-top: 4rem;">
         <div class="auth-header">
             <h1>Create an Account</h1>
             <p>Join the secure Alumni network</p>
@@ -141,6 +141,7 @@
             Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a>
             <br><br>
             <a href="{{ url_for('main.index') }}" style="color: var(--text-muted);">&larr; Back to Home</a>
+    </div>
     </div>
 </div>
 {% endblock %}

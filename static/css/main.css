@@ -948,3 +948,11 @@ textarea.form-control {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px);
+    padding: 2rem 1rem;
+}

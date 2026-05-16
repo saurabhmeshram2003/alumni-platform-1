@@ -42,6 +42,18 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
+    <!-- CSRF Token for AJAX calls -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        // Configure axios to send CSRF token with every request automatically
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = document.querySelector('meta[name="csrf-token"]');
+            if (token && window.axios) {
+                axios.defaults.headers.common['X-CSRFToken'] = token.getAttribute('content');
+            }
+        });
+    </script>
+
     {% block head %}{% endblock %}
 </head>
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
 from flask_login import login_required, current_user
 from extensions import mongo
 from bson import ObjectId
@@ -132,37 +132,47 @@ def respond(request_id):
     if current_user.role not in ('alumni', 'admin'):
         return jsonify({'error': 'Unauthorized'}), 403
 
-    data   = request.get_json()
-    action = data.get('action')
+    # Use silent=True so missing/malformed JSON returns None instead of 400
+    data = request.get_json(silent=True) or {}
+    action = data.get('action', '').strip().lower()
+
+    # Normalize: frontend may send 'rejected' or 'declined' — treat both as 'rejected'
+    if action == 'declined':
+        action = 'rejected'
 
     if action not in ('accepted', 'rejected'):
-        return jsonify({'error': 'Invalid action'}), 400
+        current_app.logger.warning(f"[Mentorship] Invalid action '{action}' from user {current_user.id}")
+        return jsonify({'error': f"Invalid action '{action}'. Must be 'accepted' or 'rejected'."}), 400
 
-    result = mongo.db.mentorship_requests.update_one(
-        {'_id': ObjectId(request_id)},
-        {'$set': {'status': action}},
-    )
+    try:
+        result = mongo.db.mentorship_requests.update_one(
+            {'_id': ObjectId(request_id)},
+            {'$set': {'status': action}},
+        )
+    except Exception as exc:
+        current_app.logger.error(f"[Mentorship] DB error updating request {request_id}: {exc}")
+        return jsonify({'error': 'Database error. Please try again.'}), 500
 
-    # Notify the student
-    if result.modified_count:
-        req_doc = mongo.db.mentorship_requests.find_one({'_id': ObjectId(request_id)})
-        if req_doc:
-            verb = 'accepted' if action == 'accepted' else 'declined'
-            try:
-                from routes.notifications import push_notification
-                push_notification(
-                    str(req_doc['student_id']),
-                    title=f'Mentorship request {verb}',
-                    body=f'{current_user.name} has {verb} your mentorship request.',
-                    link='/mentorship',
-                    ntype='mentorship',
-                )
-            except Exception:
-                pass
+    if result.matched_count == 0:
+        return jsonify({'error': 'Request not found.'}), 404
 
-        return jsonify({'success': True, 'status': action})
+    # Notify the student even if status was already set (matched but not modified)
+    req_doc = mongo.db.mentorship_requests.find_one({'_id': ObjectId(request_id)})
+    if req_doc and result.modified_count:
+        verb = 'accepted' if action == 'accepted' else 'declined'
+        try:
+            from routes.notifications import push_notification
+            push_notification(
+                str(req_doc['student_id']),
+                title=f'Mentorship request {verb}',
+                body=f'{current_user.name} has {verb} your mentorship request.',
+                link='/mentorship',
+                ntype='mentorship',
+            )
+        except Exception as exc:
+            current_app.logger.warning(f"[Mentorship] Notification failed: {exc}")
 
-    return jsonify({'error': 'Failed to update request'}), 500
+    return jsonify({'success': True, 'status': action})
 
 
 # ── API: message templates ────────────────────────────────────────────────────

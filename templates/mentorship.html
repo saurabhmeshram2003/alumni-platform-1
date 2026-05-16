@@ -322,26 +322,101 @@
 
 {% block scripts %}
 {% if current_user.role == 'alumni' %}
+<!-- Toast notification container -->
+<div id="mentorship-toast"
+     style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;min-width:280px;max-width:360px;">
+</div>
+
 <script>
+// Helper: show a toast message
+function showMentorshipToast(message, type) {
+    const container = document.getElementById('mentorship-toast');
+    const isSuccess = type === 'success';
+    const div = document.createElement('div');
+    div.style.cssText = `
+        background:${isSuccess ? '#10B981' : '#EF4444'};
+        color:white;font-weight:600;font-size:0.9rem;
+        padding:0.9rem 1.25rem;border-radius:0.75rem;
+        box-shadow:0 8px 24px rgba(0,0,0,0.18);
+        display:flex;align-items:center;gap:0.6rem;
+        animation:slideUpToast 0.3s ease;
+        margin-top:0.5rem;
+    `;
+    div.innerHTML = `<i class="fas fa-${isSuccess ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+    container.style.display = 'block';
+    container.appendChild(div);
+    setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.4s'; setTimeout(() => { div.remove(); if (!container.children.length) container.style.display = 'none'; }, 400); }, 3500);
+}
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('mentorshipInbox', () => ({
         processing: {},
         isProcessing(id) { return this.processing[id] === true; },
+
         async respond(requestId, action) {
-            if(!confirm(`Are you sure you want to ${action === 'accepted' ? 'accept' : 'decline'} this request?`)) return;
+            const label = action === 'accepted' ? 'accept' : 'decline';
+            if (!confirm(`Are you sure you want to ${label} this request?`)) return;
+
             this.processing[requestId] = true;
+
+            // Ensure CSRF token is set on axios
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            if (csrfMeta) {
+                axios.defaults.headers.common['X-CSRFToken'] = csrfMeta.getAttribute('content');
+            }
+
             try {
-                const res = await axios.post(`/mentorship/respond/${requestId}`, { action });
-                if(res.data.success) {
+                const res = await axios.post(
+                    `/mentorship/respond/${requestId}`,
+                    { action },
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+
+                if (res.data.success) {
+                    const status = res.data.status;
                     const el = document.getElementById('request-' + requestId);
-                    if(el) { el.style.transition = 'opacity 0.3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }
+                    if (el) {
+                        const btnContainer = el.querySelector('.flex.flex-col.gap-2');
+                        if (btnContainer) {
+                            if (status === 'accepted') {
+                                btnContainer.outerHTML = `
+                                    <div>
+                                      <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 mb-2">
+                                        <i class="fas fa-check-circle mr-2"></i> Accepted
+                                      </span>
+                                    </div>`;
+                            } else {
+                                btnContainer.outerHTML = `
+                                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                      <i class="fas fa-times-circle mr-2"></i> Declined
+                                    </span>`;
+                            }
+                        }
+                        el.style.opacity = '1';
+                        el.style.pointerEvents = 'auto';
+                    }
+                    const verb = status === 'accepted' ? 'accepted' : 'declined';
+                    showMentorshipToast(`Mentorship request ${verb} successfully.`, 'success');
+                } else {
+                    showMentorshipToast(res.data.error || 'Could not update request. Please try again.', 'error');
                 }
-            } catch(e) { alert('Failed to update status. Please try again.'); }
-            finally { this.processing[requestId] = false; }
+            } catch (e) {
+                const errMsg = e.response?.data?.error || e.message || 'Network error. Please check your connection.';
+                showMentorshipToast(errMsg, 'error');
+                console.error('[Mentorship] respond error:', e);
+            } finally {
+                this.processing[requestId] = false;
+            }
         }
     }));
 });
 </script>
+<style>
+@keyframes slideUpToast {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+</style>
 {% endif %}
 
 {% if current_user.role == 'student' %}

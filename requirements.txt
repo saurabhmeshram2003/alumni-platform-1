@@ -24,4 +24,3 @@ email-validator==2.1.1
 
 # ── Production WSGI server ─────────────────────────────────────────
 gunicorn==21.2.0
-resend==2.30.1

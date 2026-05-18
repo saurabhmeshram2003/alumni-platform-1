@@ -81,6 +81,7 @@ def create_app():
     from routes.admin import admin_bp
     from routes.stories import stories_bp
     from routes.notifications import notifications_bp
+    from routes.otp_api import otp_api_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -92,6 +93,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(stories_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(otp_api_bp)
 
 
     # Endpoints always accessible regardless of launch mode
@@ -102,6 +104,8 @@ def create_app():
         'auth.login',
         'auth.verify_otp',
         'auth.resend_otp',
+        'otp_api.send_otp',
+        'otp_api.verify_otp',
         'static',
     }
 

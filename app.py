@@ -106,6 +106,7 @@ def create_app():
         'auth.resend_otp',
         'otp_api.send_otp',
         'otp_api.verify_otp',
+        'otp_api.test_mail',
         'static',
     }
 

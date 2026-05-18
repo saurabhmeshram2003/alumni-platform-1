@@ -60,7 +60,9 @@ def create_app():
         'img-src': ['\'self\'', 'data:', 'blob:', '*'],
         'font-src': ['\'self\'', 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
     }
-    Talisman(app, content_security_policy=csp)
+    # Disable HTTPS redirect locally — Railway/Render handle HTTPS at proxy level
+    is_dev = os.environ.get('FLASK_ENV', 'production') == 'development'
+    Talisman(app, content_security_policy=csp, force_https=not is_dev)
     
     app.logger.info("App startup complete.")
     

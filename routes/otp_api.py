@@ -25,10 +25,14 @@ import string
 from datetime import datetime, timedelta
 
 from flask import Blueprint, request, jsonify, current_app
-from extensions import mongo
+from flask_wtf.csrf import CSRFProtect
+from extensions import mongo, csrf
 from utils.resend_email import send_email_with_resend
 
 otp_api_bp = Blueprint("otp_api", __name__)
+
+# Exempt entire blueprint from CSRF — these are JSON API routes, not HTML forms
+csrf.exempt(otp_api_bp)
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -19,7 +19,7 @@ from extensions import mail
 def send_otp_email(to_email: str, otp: str, recipient_name: str = "User") -> bool:
     """
     Send a 6-digit OTP to the given email via Gmail SMTP (Flask-Mail).
-    Runs in a background thread to avoid blocking the request.
+    Runs in a daemon background thread to avoid blocking the request.
 
     Args:
         to_email:        Recipient email address.
@@ -30,25 +30,36 @@ def send_otp_email(to_email: str, otp: str, recipient_name: str = "User") -> boo
         True  – email queued successfully in background thread.
         False – configuration missing (logged clearly).
     """
-    # ── Debug prints visible in Railway logs ──────────────────────────────────
-    print("MAIL USER:", os.getenv("MAIL_USERNAME"))
-    print("SENDING TO:", to_email)
-
     try:
         app = current_app._get_current_object()
 
-        mail_user = app.config.get("MAIL_USERNAME")
-        mail_pass = app.config.get("MAIL_PASSWORD")
-        sender_email = app.config.get("MAIL_DEFAULT_SENDER") or mail_user
+        # ── Railway diagnostic: dump every mail config value to stdout ────────
+        mail_user     = app.config.get("MAIL_USERNAME") or os.getenv("MAIL_USERNAME")
+        mail_pass     = app.config.get("MAIL_PASSWORD") or os.getenv("MAIL_PASSWORD")
+        sender_email  = app.config.get("MAIL_DEFAULT_SENDER") or mail_user
+        mail_server   = app.config.get("MAIL_SERVER", "smtp.gmail.com")
+        mail_port     = app.config.get("MAIL_PORT", 587)
+        mail_tls      = app.config.get("MAIL_USE_TLS", True)
+
+        print(f"[EMAIL CONFIG] SERVER={mail_server} PORT={mail_port} TLS={mail_tls}")
+        print(f"[EMAIL CONFIG] USERNAME={'SET (' + mail_user + ')' if mail_user else 'NOT SET ⚠️'}")
+        print(f"[EMAIL CONFIG] PASSWORD={'SET (length=' + str(len(mail_pass)) + ')' if mail_pass else 'NOT SET ⚠️'}")
+        print(f"[EMAIL CONFIG] SENDER={sender_email}")
+        print(f"[EMAIL CONFIG] RECIPIENT={to_email}")
 
         if not mail_user:
-            print("❌ EMAIL ERROR: MAIL_USERNAME is not set")
+            print("EMAIL ERROR: MAIL_USERNAME is not set in Railway environment")
             app.logger.error("[Email] MAIL_USERNAME not set — cannot send OTP.")
             return False
 
         if not mail_pass:
-            print("❌ EMAIL ERROR: MAIL_PASSWORD is not set")
+            print("EMAIL ERROR: MAIL_PASSWORD is not set in Railway environment")
             app.logger.error("[Email] MAIL_PASSWORD not set — cannot send OTP.")
+            return False
+
+        if not sender_email:
+            print("EMAIL ERROR: MAIL_DEFAULT_SENDER is not set in Railway environment")
+            app.logger.error("[Email] MAIL_DEFAULT_SENDER not set — cannot send OTP.")
             return False
 
         html_body = f"""
@@ -144,21 +155,25 @@ def send_otp_email(to_email: str, otp: str, recipient_name: str = "User") -> boo
             html=html_body,
         )
 
-        # ── Send in background thread to avoid gunicorn timeouts ──────────────
+        # ── Send in daemon thread to avoid gunicorn timeouts ──────────────────
         def _send_in_thread(app_obj, message):
             with app_obj.app_context():
                 try:
                     mail.send(message)
-                    print(f"✅ EMAIL SENT SUCCESSFULLY to {message.recipients}")
+                    print(f"EMAIL SENT SUCCESSFULLY to {message.recipients}")
                     app_obj.logger.info(f"[Email] OTP sent to {message.recipients}")
                 except Exception as exc:
-                    print(f"❌ EMAIL SEND ERROR: {exc}")
+                    print(f"EMAIL ERROR: {str(exc)}")
                     app_obj.logger.error(f"[Email] Failed to send OTP email: {exc}")
 
-        thread = threading.Thread(target=_send_in_thread, args=(app, msg), daemon=True)
+        thread = threading.Thread(
+            target=_send_in_thread,
+            args=(app, msg),
+            daemon=True,   # daemon=True: Gunicorn worker won't hang on shutdown
+        )
         thread.start()
 
-        print(f"🚀 EMAIL QUEUED for {to_email} (background thread started)")
+        print(f"[EMAIL] Thread started — OTP queued for {to_email}")
         return True
 
     except Exception as exc:

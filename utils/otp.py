@@ -3,9 +3,10 @@ utils/otp.py
 ------------
 OTP generation and Gmail SMTP email sending for the Alumni Platform.
 Production-ready — sends email in a background thread to prevent
-HTTP 502 timeouts caused by slow SMTP connections on Render.
+HTTP 502 timeouts caused by slow SMTP connections on Railway/Render.
 """
 
+import os
 import random
 import string
 import threading
@@ -46,25 +47,42 @@ def _send_mail_sync(app, msg):
 def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "User") -> tuple[bool, str]:
     """
     Send OTP via Gmail SMTP using Flask-Mail.
-    Attempts to send synchronously with a timeout to catch bad passwords
-    and prevent silent failures, while avoiding HTTP 502 errors.
+    Runs in a daemon background thread to avoid Gunicorn HTTP 502 timeouts.
     Returns (success_bool, error_message).
     """
     try:
         app = current_app._get_current_object()
 
-        mail_username = app.config.get('MAIL_USERNAME')
-        sender_email = app.config.get('MAIL_DEFAULT_SENDER') or mail_username
-        
+        # ── Railway diagnostic log: confirm config values are loaded ──────────
+        mail_username = app.config.get('MAIL_USERNAME') or os.getenv('MAIL_USERNAME')
+        mail_password = app.config.get('MAIL_PASSWORD') or os.getenv('MAIL_PASSWORD')
+        sender_email  = app.config.get('MAIL_DEFAULT_SENDER') or mail_username
+        mail_server   = app.config.get('MAIL_SERVER', 'smtp.gmail.com')
+        mail_port     = app.config.get('MAIL_PORT', 587)
+        mail_tls      = app.config.get('MAIL_USE_TLS', True)
+
+        print(f"[EMAIL CONFIG] SERVER={mail_server} PORT={mail_port} TLS={mail_tls}")
+        print(f"[EMAIL CONFIG] USERNAME={'SET (' + mail_username + ')' if mail_username else 'NOT SET'}")
+        print(f"[EMAIL CONFIG] PASSWORD={'SET (length=' + str(len(mail_password)) + ')' if mail_password else 'NOT SET'}")
+        print(f"[EMAIL CONFIG] SENDER={sender_email}")
+        print(f"[EMAIL CONFIG] RECIPIENT={recipient_email}")
+
+        if not mail_username:
+            print("EMAIL ERROR: MAIL_USERNAME is not set in Railway environment")
+            app.logger.error("[Email] MAIL_USERNAME not set — cannot send OTP.")
+            return False, "Email configuration missing (MAIL_USERNAME)."
+
+        if not mail_password:
+            print("EMAIL ERROR: MAIL_PASSWORD is not set in Railway environment")
+            app.logger.error("[Email] MAIL_PASSWORD not set — cannot send OTP.")
+            return False, "Email configuration missing (MAIL_PASSWORD)."
+
         if not sender_email:
-            app.logger.warning("MAIL_USERNAME / MAIL_DEFAULT_SENDER is not set. Cannot send OTP.")
-            return False, "Email configuration missing."
+            print("EMAIL ERROR: MAIL_DEFAULT_SENDER is not set in Railway environment")
+            app.logger.error("[Email] MAIL_DEFAULT_SENDER not set — cannot send OTP.")
+            return False, "Email configuration missing (MAIL_DEFAULT_SENDER)."
 
         sender = ("AlumniConnect", sender_email)
-
-        if not app.config.get('MAIL_PASSWORD'):
-            app.logger.warning("MAIL_PASSWORD is not set. Cannot send OTP.")
-            return False, "Email configuration missing (MAIL_PASSWORD)."
 
         subject = "Alumni Platform – Email Verification OTP"
 
@@ -124,22 +142,33 @@ def send_otp_email(recipient_email: str, otp_code: str, recipient_name: str = "U
             html=html_body,
         )
 
+        # ── Send in daemon thread — daemon=True so Gunicorn workers can exit ──
         def _send_mail_sync_thread(app_obj, message):
             with app_obj.app_context():
                 try:
                     mail.send(message)
-                    app_obj.logger.info(f"[Email] Successfully sent OTP email to {message.recipients}")
+                    print(f"EMAIL SENT SUCCESSFULLY to {message.recipients}")
+                    app_obj.logger.info(f"[Email] OTP email sent to {message.recipients}")
                 except Exception as e:
-                    app_obj.logger.error(f"[Email] Exact exception during send: {str(e)}")
+                    print(f"EMAIL ERROR: {str(e)}")
+                    app_obj.logger.error(f"[Email] SMTP send failed: {str(e)}")
 
-        # Start a background thread
-        thread = threading.Thread(target=_send_mail_sync_thread, args=(app, msg))
+        thread = threading.Thread(
+            target=_send_mail_sync_thread,
+            args=(app, msg),
+            daemon=True,   # daemon=True: Gunicorn worker won't hang on shutdown
+        )
         thread.start()
-        
+
+        print(f"[EMAIL] Thread started — OTP queued for {recipient_email}")
         return True, ""
 
     except Exception as e:
-        current_app.logger.error(f"[Email] Failed to queue OTP email: {e}")
+        print(f"EMAIL ERROR: Failed to queue OTP email — {str(e)}")
+        try:
+            current_app.logger.error(f"[Email] Failed to queue OTP email: {e}")
+        except RuntimeError:
+            pass
         return False, str(e)
 
 
@@ -147,17 +176,27 @@ def send_reset_email(recipient_email: str, reset_url: str, recipient_name: str =
     try:
         app = current_app._get_current_object()
 
-        mail_username = app.config.get('MAIL_USERNAME')
-        sender_email = app.config.get('MAIL_DEFAULT_SENDER') or mail_username
+        mail_username = app.config.get('MAIL_USERNAME') or os.getenv('MAIL_USERNAME')
+        mail_password = app.config.get('MAIL_PASSWORD') or os.getenv('MAIL_PASSWORD')
+        sender_email  = app.config.get('MAIL_DEFAULT_SENDER') or mail_username
+
+        print(f"[RESET EMAIL CONFIG] USERNAME={'SET' if mail_username else 'NOT SET'} SENDER={sender_email}")
+        print(f"[RESET EMAIL CONFIG] RECIPIENT={recipient_email}")
 
         if not sender_email:
+            print("EMAIL ERROR: MAIL_DEFAULT_SENDER / MAIL_USERNAME is not set — cannot send reset email")
             app.logger.warning("MAIL_USERNAME / MAIL_DEFAULT_SENDER is not set. Cannot send reset email.")
             return False, "Email configuration missing."
+
+        if not mail_password:
+            print("EMAIL ERROR: MAIL_PASSWORD is not set — cannot send reset email")
+            app.logger.warning("MAIL_PASSWORD is not set. Cannot send reset email.")
+            return False, "Email configuration missing (MAIL_PASSWORD)."
 
         sender = ("AlumniConnect", sender_email)
 
         subject = "Alumni Platform – Password Reset"
-        
+
         body = (
             f"Hello {recipient_name},\n\n"
             f"You have requested to reset your password on the Alumni Platform.\n"
@@ -166,7 +205,7 @@ def send_reset_email(recipient_email: str, reset_url: str, recipient_name: str =
             f"This link will expire in 30 minutes.\n"
             f"If you didn't request this, please ignore this email.\n"
         )
-        
+
         html_body = f"""
         <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:auto;
                     padding:32px;border:1px solid #E5E7EB;border-radius:12px;
@@ -196,20 +235,32 @@ def send_reset_email(recipient_email: str, reset_url: str, recipient_name: str =
             html=html_body,
         )
 
+        # ── Send in daemon thread ─────────────────────────────────────────────
         def _send_reset_sync_thread(app_obj, message):
             with app_obj.app_context():
                 try:
                     mail.send(message)
-                    app_obj.logger.info(f"[Email] Successfully sent reset email to {message.recipients}")
+                    print(f"EMAIL SENT SUCCESSFULLY to {message.recipients} (password reset)")
+                    app_obj.logger.info(f"[Email] Password reset email sent to {message.recipients}")
                 except Exception as e:
+                    print(f"EMAIL ERROR: {str(e)} (password reset to {message.recipients})")
                     app_obj.logger.error(f"[Email] Failed to send reset email: {str(e)}")
 
-        thread = threading.Thread(target=_send_reset_sync_thread, args=(app, msg))
+        thread = threading.Thread(
+            target=_send_reset_sync_thread,
+            args=(app, msg),
+            daemon=True,
+        )
         thread.start()
-        
+
+        print(f"[EMAIL] Reset email thread started for {recipient_email}")
         return True, ""
 
     except Exception as e:
-        current_app.logger.error(f"[Email] Failed to queue reset email: {e}")
+        print(f"EMAIL ERROR: Failed to queue reset email — {str(e)}")
+        try:
+            current_app.logger.error(f"[Email] Failed to queue reset email: {e}")
+        except RuntimeError:
+            pass
         return False, str(e)
 

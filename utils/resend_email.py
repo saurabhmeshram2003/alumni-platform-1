@@ -6,14 +6,14 @@ Supports any subject + HTML content (not just OTPs).
 
 Usage:
     from utils.resend_email import send_email_with_resend
-    success = send_email_with_resend("user@example.com", "Subject", "<h1>Hello</h1>")
+    success, err = send_email_with_resend("user@example.com", "Subject", "<h1>Hello</h1>")
 """
 
 import os
 import resend
 
 
-def send_email_with_resend(to_email: str, subject: str, html_content: str) -> bool:
+def send_email_with_resend(to_email: str, subject: str, html_content: str) -> tuple:
     """
     Send an email via the Resend API.
 
@@ -23,21 +23,23 @@ def send_email_with_resend(to_email: str, subject: str, html_content: str) -> bo
         html_content: HTML body of the email.
 
     Returns:
-        True on success, False on any failure.
+        (True, "")           on success.
+        (False, error_msg)   on any failure — error_msg contains the exact Resend error.
     """
     try:
         # Load API key at runtime — never cache at module level
         api_key = os.getenv("RESEND_API_KEY")
-        print("RESEND API KEY:", api_key)
+        print("🔑 RESEND API KEY:", api_key)
 
         if not api_key:
-            print("❌ RESEND ERROR: RESEND_API_KEY is not set in environment")
-            return False
+            msg = "RESEND_API_KEY is not set in environment"
+            print("❌ RESEND ERROR:", msg)
+            return False, msg
 
         resend.api_key = api_key
 
-        print("SENDING EMAIL TO:", to_email)
-        print("SUBJECT:", subject)
+        print("📧 SENDING EMAIL TO:", to_email)
+        print("📋 SUBJECT:", subject)
 
         response = resend.Emails.send({
             "from": "onboarding@resend.dev",
@@ -46,9 +48,11 @@ def send_email_with_resend(to_email: str, subject: str, html_content: str) -> bo
             "html": html_content,
         })
 
-        print("RESEND SUCCESS RESPONSE:", response)
-        return True
+        print("✅ RESEND SUCCESS RESPONSE:", response)
+        return True, ""
 
     except Exception as e:
-        print("❌ RESEND ERROR:", str(e))
-        return False
+        error_msg = str(e)
+        print("❌ RESEND ERROR:", error_msg)
+        return False, error_msg
+

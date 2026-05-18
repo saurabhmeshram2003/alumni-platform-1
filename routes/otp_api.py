@@ -143,7 +143,7 @@ def test_mail():
 
     print(f"[test-mail] Sending test email to: {test_email}")
 
-    success = send_email_with_resend(
+    success, err = send_email_with_resend(
         test_email,
         "Railway Test – AlumniConnect Email Working ✅",
         """
@@ -161,7 +161,7 @@ def test_mail():
     if success:
         return jsonify({"success": True, "message": f"Test email sent to {test_email}. Check Railway logs."}), 200
     else:
-        return jsonify({"success": False, "message": "Email failed. Check Railway logs for RESEND ERROR."}), 502
+        return jsonify({"success": False, "message": "Email failed. Check Railway logs for RESEND ERROR.", "detail": err}), 502
 
 
 # ── POST /send-otp ────────────────────────────────────────────────────────────
@@ -206,14 +206,20 @@ def send_otp():
         return jsonify({"success": False, "error": "Database error. Please try again."}), 500
 
     # ── 4. Send via Resend ────────────────────────────────────────────────────
-    success = send_email_with_resend(
+    print("🚀 CALLING RESEND FUNCTION for:", email)
+    success, error_detail = send_email_with_resend(
         email,
         "AlumniConnect – Your Email Verification OTP",
         _build_otp_html(otp),
     )
 
     if not success:
-        return jsonify({"success": False, "error": "Email sending failed. Check Railway logs."}), 502
+        print(f"[send-otp] ❌ Resend failed for {email}: {error_detail}")
+        return jsonify({
+            "success": False,
+            "error": "Email sending failed. Check Railway logs.",
+            "detail": error_detail,   # exact Resend error — remove in production
+        }), 502
 
     return jsonify({
         "success": True,
